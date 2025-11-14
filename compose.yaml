@@ -11,3 +11,9 @@
       context: .
       dockerfile: Ohd/Dockerfile
 
+  ohd1:
+    image: ohd1
+    build:
+      context: .
+      dockerfile: Ohd1/Dockerfile
+
