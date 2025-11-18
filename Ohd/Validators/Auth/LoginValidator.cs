@@ -13,7 +13,8 @@ namespace Ohd.Validators.Auth
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password cannot be left blank")
-                .MinimumLength(6).WithMessage("Password must be at least 6 characters long and include at leasr one special charater");
+                .MinimumLength(6)
+                .WithMessage("Password must be at least 8 characters long and include at leasr one special charater");
         }
     }
 }

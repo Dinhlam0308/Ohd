@@ -1,102 +1,105 @@
-using Microsoft.EntityFrameworkCore;
-using Ohd.Data;
+using AutoMapper;
 using Ohd.DTOs.Requests;
 using Ohd.Entities;
+using Ohd.Repositories.Interfaces;
 
 namespace Ohd.Services
 {
     public class RequestService
     {
-        private readonly OhdDbContext _context;
+        private readonly IRequestRepository _repo;
+        private readonly IMapper _mapper;
 
-        public RequestService(OhdDbContext context)
+        public RequestService(IRequestRepository repo, IMapper mapper)
         {
-            _context = context;
+            _repo = repo;
+            _mapper = mapper;
         }
 
-        // Lấy tất cả request (chưa include facility)
+        // ============================
+        // GET ALL
+        // ============================
         public async Task<List<Request>> GetAllAsync()
         {
-            return await _context.requests
-                .ToListAsync();
+            return await _repo.GetAllAsync();
         }
 
-        // Lấy 1 request theo Id
+        // ============================
+        // GET BY ID
+        // ============================
         public async Task<Request?> GetByIdAsync(long id)
         {
-            return await _context.requests
-                .FirstOrDefaultAsync(r => r.Id == id);
+            return await _repo.GetByIdAsync(id);
         }
 
+        // ============================
+        // CREATE REQUEST
+        // ============================
         public async Task<Request> CreateAsync(RequestCreateDto dto)
         {
-            var now = DateTime.UtcNow;
+            var entity = _mapper.Map<Request>(dto);
 
-            var entity = new Request
-            {
-                RequestorId = dto.RequestorId,
-                FacilityId = dto.FacilityId,
-                Title = dto.Title,
-                Description = dto.Description,
-                SeverityId = dto.SeverityId,
-                PriorityId = dto.PriorityId,
-                StatusId = 1, // ví dụ: 1 = New / Open
-                CreatedAt = now,
-                UpdatedAt = now
-            };
+            // set thêm các field hệ thống
+            entity.StatusId  = 1;                 // default = New
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = DateTime.UtcNow;
 
-            _context.requests.Add(entity);
-            await _context.SaveChangesAsync();
-            return entity;
+            // repository sẽ tự SaveChanges bên trong
+            return await _repo.CreateAsync(entity);
         }
 
+        // ============================
+        // UPDATE REQUEST
+        // ============================
         public async Task<bool> UpdateAsync(long id, RequestUpdateDto dto)
         {
-            var entity = await _context.requests.FindAsync(id);
+            var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
 
-            entity.Title = dto.Title;
-            entity.Description = dto.Description;
-            entity.PriorityId = dto.PriorityId;
-            entity.Remarks = dto.Remarks;
+            _mapper.Map(dto, entity);
             entity.UpdatedAt = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
-            return true;
+            // trả về true/false từ repo
+            return await _repo.UpdateAsync(entity);
         }
 
+        // ============================
+        // CHANGE STATUS
+        // ============================
         public async Task<bool> ChangeStatusAsync(long id, RequestChangeStatusDto dto)
         {
-            var entity = await _context.requests.FindAsync(id);
+            var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
 
-            var fromStatus = entity.StatusId;
-            entity.StatusId = dto.ToStatusId;
+            var oldStatus = entity.StatusId;
+
+            entity.StatusId  = dto.ToStatusId;
             entity.UpdatedAt = DateTime.UtcNow;
+
+            var ok = await _repo.UpdateAsync(entity);
+            if (!ok) return false;
 
             var history = new request_history
             {
-                request_id = id,
-                from_status_id = fromStatus,
-                to_status_id = dto.ToStatusId,
+                request_id         = id,
+                from_status_id     = oldStatus,
+                to_status_id       = dto.ToStatusId,
                 changed_by_user_id = dto.ChangedByUserId,
-                remarks = dto.Remarks,
-                changed_at = DateTime.UtcNow
+                remarks            = dto.Remarks,
+                changed_at         = DateTime.UtcNow
             };
 
-            _context.request_history.Add(history);
-            await _context.SaveChangesAsync();
+            await _repo.AddHistoryAsync(history);
+
             return true;
         }
 
+        // ============================
+        // DELETE
+        // ============================
         public async Task<bool> DeleteAsync(long id)
         {
-            var entity = await _context.requests.FindAsync(id);
-            if (entity == null) return false;
-
-            _context.requests.Remove(entity);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _repo.DeleteAsync(id);
         }
     }
 }

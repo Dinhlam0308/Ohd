@@ -9,31 +9,46 @@ using Ohd.Middlewares;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Ohd.Validators.Auth;
+using Ohd.Repositories.Interfaces;
+using Ohd.Repositories.Implementations;
+using Ohd.Mappings;
+using Ohd.Background;
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+// =============================
+// 1. CONFIG: DB + JWT
+// =============================
+var connectionString = builder.Configuration.GetConnectionString("OhdConnection");
 var jwtConfig = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtConfig["Key"]!);
 
-// config: read connection string + jwt key from appsettings.json
-var connectionString = builder.Configuration.GetConnectionString("OhdConnection");
+// DB
 builder.Services.AddDbContext<OhdDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
 );
+
+// =============================
+// 2. CORS
+// =============================
 var MyAllowSpecificOrigins = "AllowFrontend";
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-        policy =>
-        {
-            policy
-                .WithOrigins("http://localhost:5173", "http://localhost:3000")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
-        });
+    options.AddPolicy(name: MyAllowSpecificOrigins, policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173", "http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
 });
 
+// =============================
+// 3. AUTH + JWT
+// =============================
 builder.Services
     .AddAuthentication(options =>
     {
@@ -60,80 +75,75 @@ builder.Services
         };
     });
 
-// 3) Thêm Authorization (có thể khai báo policy sau)
+// Authorization (ví dụ policy AdminOnly)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy =>
         policy.RequireRole("Admin"));
 });
 
-builder.Services.AddControllers();
-// register helpers / services
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<RequestService>();
-builder.Services.AddScoped<JwtHelper>();
+// =============================
+// 4. CONTROLLERS + SWAGGER
+// =============================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<FacilityService>();
-builder.Services.AddScoped<RequestStatusService>();
-builder.Services.AddScoped<SeverityService>();
-builder.Services.AddScoped<RequestPriorityService>();
-builder.Services.AddScoped<CategoryService>();
-builder.Services.AddScoped<TagService>();
-builder.Services.AddScoped<SkillService>();
-builder.Services.AddScoped<TeamService>();
-builder.Services.AddScoped<UserTeamService>();
-builder.Services.AddScoped<SystemSettingService>();
-builder.Services.AddScoped<SlaPolicyService>();
-builder.Services.AddScoped<MaintenanceWindowService>();
+
+// =============================
+// 5. SERVICES (DI)
+// =============================
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<RequestService>();
+builder.Services.AddScoped<JwtHelper>();
+
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<RequestService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<RequestCommentService>();
 builder.Services.AddScoped<AttachmentService>();
 builder.Services.AddScoped<RequestTagService>();
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddScoped<MailSender>();
+builder.Services.AddHostedService<EmailOutboxWorker>();
+
+// =============================
+// 6. REPOSITORIES
+// =============================
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRequestRepository, RequestRepository>();
+builder.Services.AddScoped<ILookupRepository, LookupRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
+
+
+// =============================
+// 7. FLUENT VALIDATION
+// =============================
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<LoginValidator>();
-
-// configure JWT bearer for validating tokens on other endpoints (optional)
-var jwtKey = builder.Configuration["Jwt:Key"];
-if (!string.IsNullOrEmpty(jwtKey))
-{
-    builder.Services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = "JwtBearer";
-            options.DefaultChallengeScheme = "JwtBearer";
-        })
-        .AddJwtBearer("JwtBearer", options =>
-        {
-            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-            {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-            };
-        });
-}
+builder.Services.AddAutoMapper(typeof(RequestMappingProfile).Assembly);
 
 var app = builder.Build();
 
+// =============================
+// 8. MIDDLEWARE PIPELINE
+// =============================
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseMiddleware<ErrorHandlingMiddleware>();
+
 app.UseHttpsRedirection();
 
-// nếu có CORS thì để trước auth
-app.UseCors("AllowFrontend");
-
-// RẤT QUAN TRỌNG:
-app.UseAuthentication();    // 👈 bắt buộc trước UseAuthorization
-app.UseAuthorization();
+// CORS phải trước Auth
 app.UseCors(MyAllowSpecificOrigins);
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
