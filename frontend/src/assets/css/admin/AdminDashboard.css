@@ -1,0 +1,242 @@
+@import "tailwindcss";
+
+@layer components {
+
+    /* ===================================================
+       FIX HOÀN TOÀN BUTTON BỊ NỀN ĐEN
+       =================================================== */
+
+    /* LOGOUT BUTTON */
+    .admin-logout-btn {
+        background: rgba(255, 255, 255, 0.20) !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        color: #1e293b !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        padding: 8px 18px !important;
+        border-radius: 14px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
+    }
+    .admin-logout-btn:hover {
+        background: rgba(255, 255, 255, 0.35) !important;
+    }
+
+    /* SIDEBAR TOGGLE BUTTON */
+    .admin-toggle-btn {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: 1px solid rgba(255, 255, 255, 0.30) !important;
+        color: #ffffff !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border-radius: 12px !important;
+        width: 30px !important;
+        height: 30px !important;
+        transition: all .2s ease !important;
+    }
+    .admin-toggle-btn:hover {
+        background: rgba(255, 255, 255, 0.25) !important;
+    }
+
+    /* ===================================================
+       ROOT LAYOUT
+       =================================================== */
+
+    .admin-shell {
+        @apply w-screen h-screen bg-[#F6F8FC] text-slate-800 flex overflow-hidden;
+    }
+
+    /* ===================================================
+       SIDEBAR
+       =================================================== */
+
+    .admin-sidebar {
+        width: 260px;
+        background: linear-gradient(180deg,#1E3A8A,#355ACF,#4F8DFD,#7EB6FF);
+        @apply flex flex-col border-r border-blue-300/30 shadow-2xl text-white transition-all duration-200;
+    }
+
+    .admin-sidebar.collapsed {
+        width: 72px;
+    }
+
+    .admin-sidebar-header {
+        @apply flex items-center justify-between px-4 py-4 border-b border-white/10;
+    }
+
+    .logo-circle {
+        @apply w-10 h-10 rounded-xl bg-white/25 backdrop-blur-sm flex items-center justify-center font-bold shadow-md;
+    }
+
+    .logo-title {
+        @apply text-[15px] font-semibold tracking-wide;
+    }
+
+    .logo-sub {
+        @apply text-xs text-blue-100;
+    }
+
+    .admin-menu {
+        @apply flex-1 py-4 space-y-1 overflow-y-auto;
+    }
+
+    .admin-menu-item {
+        @apply w-full flex items-center gap-3 px-4 py-3 rounded-lg text-blue-50
+        text-[15px] font-medium tracking-wide transition;
+        background: transparent !important;
+    }
+
+    .admin-menu-item:hover {
+        background: rgba(255,255,255,0.12);
+    }
+
+    .admin-menu-item.active {
+        background: rgba(255,255,255,0.25);
+        border: 1px solid rgba(255,255,255,0.35);
+        @apply backdrop-blur-md shadow-lg;
+    }
+
+    /* ===================================================
+       HEADER
+       =================================================== */
+
+    .admin-header {
+        background: linear-gradient(90deg,#1E3A8A,#355ACF,#4F8DFD,#7EB6FF);
+        @apply flex items-center justify-between px-8 py-4 shadow-md text-white;
+    }
+
+    .admin-avatar {
+        @apply w-9 h-9 rounded-full bg-gradient-to-br from-blue-300 to-blue-600
+        flex items-center justify-center font-semibold shadow-lg;
+    }
+
+    /* ===================================================
+       CONTENT
+       =================================================== */
+
+    .admin-content {
+        @apply flex-1 p-6 overflow-y-auto;
+    }
+
+    /* ===================================================
+       GLASS PANEL
+       =================================================== */
+
+    .glass-panel {
+        @apply backdrop-blur-xl bg-white/60 border border-white/20 rounded-2xl
+        shadow-[0_4px_20px_rgba(0,0,0,0.05)];
+    }
+
+    .glass-header {
+        @apply text-slate-800 font-semibold;
+    }
+
+    /* ===================================================
+       GLASS INPUT
+       =================================================== */
+
+    .glass-input {
+        @apply w-full px-3 py-2 rounded-lg bg-white/70 backdrop-blur-md
+        border border-gray-300/30 text-slate-800 shadow-sm
+        focus:ring-2 focus:ring-slate-300;
+    }
+
+    /* ===================================================
+       GLASS TABLE
+       =================================================== */
+
+    .glass-table {
+        @apply w-full text-xs text-slate-700;
+    }
+    .glass-table th {
+        @apply bg-white/30 backdrop-blur-sm border-b border-white/20 px-3 py-2;
+    }
+    .glass-table td {
+        @apply border-b border-gray-300/30 px-3 py-2;
+    }
+
+    /* ===================================================
+       GLASS BUTTONS — APPLE STYLE (FINAL)
+       =================================================== */
+
+    .glass-btn {
+        background: rgba(255,255,255,0.20) !important;
+        border: 1px solid rgba(255,255,255,0.30) !important;
+        color: #1e293b !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        padding: 8px 18px !important;
+        border-radius: 14px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all .2s ease !important;
+    }
+
+    .glass-btn:hover {
+        background: rgba(255,255,255,0.30) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+    }
+
+    .glass-btn-primary {
+        background: rgba(255,255,255,0.45) !important;
+        border-color: rgba(255,255,255,0.60) !important;
+        color: #0f172a !important;
+        font-weight: 600 !important;
+    }
+    .glass-btn-primary:hover {
+        background: rgba(255,255,255,0.55) !important;
+    }
+
+    .glass-btn-light {
+        background: rgba(255,255,255,0.15) !important;
+        border-color: rgba(255,255,255,0.25) !important;
+        color: #334155 !important;
+    }
+
+    .glass-btn-danger {
+        background: rgba(255,0,0,0.12) !important;
+        border-color: rgba(255,0,0,0.25) !important;
+        color: #dc2626 !important;
+    }
+
+    /* ===================================================
+       GLASS TABS (APPLE STYLE)
+       =================================================== */
+
+    .glass-tab {
+        background: rgba(255,255,255,0.20) !important;
+        color: #334155 !important;
+        border: 1px solid rgba(255,255,255,0.30) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        padding: 8px 16px !important;
+        border-radius: 14px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: all .2s ease !important;
+    }
+
+    .glass-tab:hover {
+        background: rgba(255,255,255,0.30) !important;
+    }
+
+    .glass-tab-active {
+        background: rgba(255,255,255,0.45) !important;
+        border-color: rgba(255,255,255,0.60) !important;
+        color: #0f172a !important;
+        box-shadow: 0 6px 14px rgba(0,0,0,0.12) !important;
+    }
+
+    .glass-tab-inactive {
+        background: rgba(255,255,255,0.15) !important;
+        border-color: rgba(255,255,255,0.25) !important;
+        color: #475569 !important;
+    }
+
+}

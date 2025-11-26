@@ -1,0 +1,52 @@
+/* ============================
+   FIX TEXT COLOR TO BLACK
+   ============================ */
+
+/* Toàn bộ text trong Activity Log */
+.activity-log-container,
+.activity-log-container * {
+    color: #111 !important;
+    fill: #111 !important;
+}
+
+/* Placeholder màu xám đậm */
+.activity-filters input::placeholder,
+.activity-filters select {
+    color: #444 !important;
+}
+
+/* Input, select màu chữ đen */
+.activity-filters input,
+.activity-filters select {
+    color: #111 !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid #ccc !important;
+}
+
+/* Label text */
+.activity-filters label {
+    color: #111 !important;
+    font-weight: 600;
+}
+
+/* 'No activity matches...' */
+.activity-empty-msg {
+    color: #222 !important;
+}
+
+/* Nút Export */
+.export-btn {
+    color: #111 !important;
+    background: #f5f5f5 !important;
+    border: 1px solid #ccc !important;
+}
+
+.export-btn:hover {
+    background: #e5e5e5 !important;
+}
+
+/* Bảng log */
+.activity-table th,
+.activity-table td {
+    color: #111 !important;
+}
