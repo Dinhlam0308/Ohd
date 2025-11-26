@@ -13,5 +13,8 @@ namespace Ohd.Repositories.Interfaces
 
         // Request History
         Task AddHistoryAsync(request_history history);
+        Task<int> CountOverdueAsync();
+        Task<List<Request>> GetOverdueListAsync();
+
     }
 }

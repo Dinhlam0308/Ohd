@@ -8,7 +8,13 @@ const request = {
     getById(id) {
         return api.get(`/request/${id}`);
     },
-
+    getOverdueCount() {
+        return api.get("/request/overdue/count");
+    },
+    getOverdueList() {
+        return api.get("/request/overdue/list");
+    },
+    
     create(data) {
         // data: RequestCreateDto
         return api.post("/request", data);
@@ -27,6 +33,7 @@ const request = {
     delete(id) {
         return api.delete(`/request/${id}`);
     },
+   
 };
 
 export default request;

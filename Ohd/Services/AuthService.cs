@@ -3,6 +3,7 @@ using Ohd.Entities;
 using Ohd.Repositories.Interfaces;
 using Ohd.Utils;
 using Google.Apis.Auth;
+
 namespace Ohd.Services
 {
     public class AuthService
@@ -25,21 +26,18 @@ namespace Ohd.Services
         }
 
         // ==========================
-        // LOGIN (Email + Password)
-        // Trả về: ok, error, token, requireChangePassword
+        // LOGIN
         // ==========================
-        public async Task<(bool ok, string? error, string? token, bool requireChangePassword)> Login(LoginRequest request)
+        public async Task<(bool ok, string? error, string? token, bool requireChangePassword, string role)>
+            Login(LoginRequest request)
         {
             var user = await _users.GetByEmailAsync(request.Email);
             if (user == null || !user.Is_Active)
-                return (false, "Email hoặc mật khẩu không đúng", null, false);
+                return (false, "Email hoặc mật khẩu không đúng", null, false, "");
 
             if (!PasswordHasher.Verify(request.Password, user.Password_Hash))
-                return (false, "Email hoặc mật khẩu không đúng", null, false);
+                return (false, "Email hoặc mật khẩu không đúng", null, false, "");
 
-            // Check yêu cầu đổi mật khẩu:
-            // 1) Lần đầu đăng nhập
-            // 2) Hoặc đã quá 6 tháng từ lần đổi mật khẩu gần nhất
             bool requireChangePassword = false;
 
             if (user.Is_First_Login)
@@ -55,8 +53,13 @@ namespace Ohd.Services
                 }
             }
 
-            var token = _jwt.GenerateToken(user.Id, user.Email ?? string.Empty);
-            return (true, null, token, requireChangePassword);
+            // 🔥 Lấy ROLE NAME
+            var roleName = await _users.GetUserRoleNameAsync(user.Id) ?? "EndUser";
+
+            // 🔥 Tạo token với ROLE NAME, không phải ID
+            var token = _jwt.GenerateToken(user.Id, user.Email ?? string.Empty, roleName);
+
+            return (true, null, token, requireChangePassword, roleName);
         }
 
         // ==========================
@@ -75,10 +78,10 @@ namespace Ohd.Services
                 Username = string.IsNullOrWhiteSpace(req.Username) ? req.Email : req.Username,
                 Email = req.Email,
                 Password_Hash = hash,
-                Is_First_Login = true,              // bắt buộc đổi ở lần login đầu
+                Is_First_Login = true,
                 Is_Active = true,
                 Created_At = DateTime.UtcNow,
-                Password_Last_Changed_At = null     // null → coi như chưa đổi lần nào
+                Password_Last_Changed_At = null
             };
 
             await _users.AddAsync(user);
@@ -99,9 +102,9 @@ namespace Ohd.Services
             return (true, null, rawPassword);
         }
 
+
         // ==========================
-        // ĐỔI MẬT KHẨU (lần đầu hoặc sau 6 tháng)
-        // FE gọi khi requireChangePassword = true
+        // FIRST LOGIN CHANGE PASSWORD
         // ==========================
         public async Task<(bool ok, string? error)> ChangePasswordFirstLogin(
             long userId,
@@ -115,42 +118,34 @@ namespace Ohd.Services
             if (!PasswordHasher.Verify(oldPassword, user.Password_Hash))
                 return (false, "Old password incorrect");
 
-            // Lưu history mật khẩu cũ
             await _users.SavePasswordHistoryAsync(user.Id, user.Password_Hash);
 
-            // Cập nhật mật khẩu mới
             user.Password_Hash = PasswordHasher.Hash(newPassword);
-            user.Is_First_Login = false; // sau khi đổi xong thì bỏ cờ first login
+            user.Is_First_Login = false;
             user.Password_Last_Changed_At = DateTime.UtcNow;
 
             await _users.SaveChangesAsync();
             return (true, null);
         }
 
+
         // ==========================
-        // QUÊN MẬT KHẨU
-        // Gửi email chứa mật khẩu tạm mới
+        // FORGOT PASSWORD
         // ==========================
         public async Task<(bool ok, string? error)> ForgotPasswordAsync(string email)
         {
             var user = await _users.GetByEmailAsync(email);
 
-            // Để tránh lộ email có tồn tại hay không, nếu không có user
-            // thì vẫn trả ok = true, FE chỉ show message chung chung.
             if (user == null)
-            {
                 return (true, null);
-            }
 
-            // Lưu mật khẩu cũ vào history
             await _users.SavePasswordHistoryAsync(user.Id, user.Password_Hash);
 
-            // Sinh mật khẩu tạm mới
             var rawPassword = PasswordGenerator.Generate(10);
             var newHash = PasswordHasher.Hash(rawPassword);
 
             user.Password_Hash = newHash;
-            user.Is_First_Login = true;                 // reset xong bắt buộc đổi lại
+            user.Is_First_Login = true;
             user.Password_Last_Changed_At = DateTime.UtcNow;
 
             var bodyHtml = $@"
@@ -164,11 +159,14 @@ namespace Ohd.Services
 
             await _users.SaveChangesAsync();
             return (true, null);
-        
         }
+
+
+        // ==========================
+        // RESET PASSWORD VIA TOKEN
+        // ==========================
         public async Task<(bool ok, string? error)> ResetPasswordAsync(string token, string newPassword)
         {
-            // Tìm token trong DB
             var reset = await _users.GetResetTokenAsync(token);
             if (reset == null)
                 return (false, "Token không hợp lệ hoặc đã hết hạn");
@@ -176,30 +174,30 @@ namespace Ohd.Services
             if (reset.expires_at < DateTime.UtcNow)
                 return (false, "Token đã hết hạn");
 
-            // Lấy user
             var user = await _users.GetByIdAsync(reset.user_id);
             if (user == null)
                 return (false, "User không tồn tại");
 
-            // Lưu mật khẩu cũ vào history
             await _users.SavePasswordHistoryAsync(user.Id, user.Password_Hash);
 
-            // Cập nhật mật khẩu mới
             user.Password_Hash = PasswordHasher.Hash(newPassword);
             user.Is_First_Login = false;
             user.Password_Last_Changed_At = DateTime.UtcNow;
 
-            // Xóa token sau khi dùng
             await _users.DeleteResetTokenAsync(token);
 
             await _users.SaveChangesAsync();
             return (true, null);
         }
+
+
+        // ==========================
+        // GOOGLE LOGIN
+        // ==========================
         public async Task<(bool ok, string? error, string? token)> GoogleLoginAsync(string credential, string email)
         {
             try
             {
-                // 1) Xác minh Google ID Token
                 var payload = await GoogleJsonWebSignature.ValidateAsync(credential);
                 if (payload == null)
                     return (false, "Token Google không hợp lệ", null);
@@ -208,7 +206,6 @@ namespace Ohd.Services
                 if (googleEmail != email.ToLower())
                     return (false, "Email không trùng khớp", null);
 
-                // 2) Kiểm tra email trong hệ thống
                 var user = await _users.GetByEmailAsync(googleEmail);
                 if (user == null)
                     return (false, "Email không có quyền truy cập hệ thống", null);
@@ -216,8 +213,10 @@ namespace Ohd.Services
                 if (!user.Is_Active)
                     return (false, "Tài khoản bị vô hiệu hoá", null);
 
-                // 3) Tạo JWT token
-                var token = _jwt.GenerateToken(user.Id, user.Email!);
+                var roleId = await _users.GetUserRoleIdAsync(user.Id);
+
+                var token =
+                    _jwt.GenerateToken(user.Id, user.Email!, roleId?.ToString() ?? "");
 
                 return (true, null, token);
             }
@@ -226,6 +225,5 @@ namespace Ohd.Services
                 return (false, ex.Message, null);
             }
         }
-
     }
 }

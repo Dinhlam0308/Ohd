@@ -13,10 +13,12 @@ using Ohd.Repositories.Interfaces;
 using Ohd.Repositories.Implementations;
 using Ohd.Mappings;
 using Ohd.Background;
-
+using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 // =============================
 // 1. CONFIG: DB + JWT
 // =============================
@@ -53,7 +55,7 @@ builder.Services
     .AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+ 
     })
     .AddJwtBearer(options =>
     {
@@ -94,10 +96,13 @@ builder.Services.AddSwaggerGen();
 // =============================
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<RequestService>();
-builder.Services.AddScoped<JwtHelper>();
+builder.Services.AddScoped<AdminUserService>();
+builder.Services.AddScoped<EmailService>();
+builder.Services.AddHostedService<ReminderWorker>();
 
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<RequestService>();
+
+
+
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<RequestCommentService>();
 builder.Services.AddScoped<AttachmentService>();
@@ -105,7 +110,8 @@ builder.Services.AddScoped<RequestTagService>();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<MailSender>();
 builder.Services.AddHostedService<EmailOutboxWorker>();
-
+builder.Services.AddScoped<AdminConfigService>();
+builder.Services.AddScoped<AdminUserService>();
 // =============================
 // 6. REPOSITORIES
 // =============================
@@ -114,8 +120,8 @@ builder.Services.AddScoped<IRequestRepository, RequestRepository>();
 builder.Services.AddScoped<ILookupRepository, LookupRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
-
-
+builder.Services.AddScoped<AdminDashboardService>();
+builder.Services.AddScoped<JwtHelper>();
 // =============================
 // 7. FLUENT VALIDATION
 // =============================

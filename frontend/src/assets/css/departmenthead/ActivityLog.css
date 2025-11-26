@@ -1,52 +1,74 @@
-/* ============================
-   FIX TEXT COLOR TO BLACK
-   ============================ */
+/* =========================================
+   FILTER PANEL — Beautiful Modern UI
+   ========================================= */
 
-/* Toàn bộ text trong Activity Log */
-.activity-log-container,
-.activity-log-container * {
-    color: #111 !important;
-    fill: #111 !important;
+/* Panel wrapper */
+.dh-filters-panel {
+    background: #ffffffcc;
+    backdrop-filter: blur(10px);
+    padding: 18px 22px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
 }
 
-/* Placeholder màu xám đậm */
-.activity-filters input::placeholder,
-.activity-filters select {
-    color: #444 !important;
-}
-
-/* Input, select màu chữ đen */
-.activity-filters input,
-.activity-filters select {
-    color: #111 !important;
-    background: rgba(255, 255, 255, 0.85) !important;
-    border: 1px solid #ccc !important;
-}
-
-/* Label text */
-.activity-filters label {
-    color: #111 !important;
+/* Label */
+.dh-filter-label {
+    font-size: 14px;
     font-weight: 600;
+    color: #1f2937 !important; /* slate-800 */
+    margin-bottom: 6px;
+    display: block;
 }
 
-/* 'No activity matches...' */
-.activity-empty-msg {
-    color: #222 !important;
+/* Input + Date + Select */
+.dh-filter-input,
+.dh-filter-select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 10px;
+
+    background: #ffffff;
+    border: 1px solid #d1d5db; /* slate-300 */
+    color: #111827 !important; /* slate-900 */
+
+    transition: all 0.2s ease;
 }
 
-/* Nút Export */
-.export-btn {
+/* Hover */
+.dh-filter-input:hover,
+.dh-filter-select:hover {
+    border-color: #9ca3af; /* slate-400 */
+}
+
+/* Focus */
+.dh-filter-input:focus,
+.dh-filter-select:focus {
+    outline: none;
+    border-color: #6366f1; /* indigo-500 */
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+/* Placeholder */
+.dh-filter-input::placeholder {
+    color: #6b7280; /* slate-500 */
+}
+
+.dh-filter-select option {
+    color: #111;
+}
+
+/* Responsive Grid Layout */
+.dh-filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+.dh-detail-empty {
     color: #111 !important;
-    background: #f5f5f5 !important;
-    border: 1px solid #ccc !important;
-}
-
-.export-btn:hover {
-    background: #e5e5e5 !important;
-}
-
-/* Bảng log */
-.activity-table th,
-.activity-table td {
-    color: #111 !important;
+    font-weight: 500;
+    padding: 12px 0;
+    border-radius: 8px;
 }

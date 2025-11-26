@@ -61,5 +61,18 @@ namespace Ohd.Controllers
             if (!ok) return NotFound();
             return Ok(new { message = "Deleted" });
         }
+        [HttpGet("overdue/count")]
+        public async Task<IActionResult> GetOverdueCount()
+        {
+            var count = await _service.CountOverdueAsync();
+            return Ok(new { overdue = count });
+        }
+        [HttpGet("overdue/list")]
+        public async Task<IActionResult> GetOverdueList()
+        {
+            var list = await _service.GetOverdueListAsync();
+            return Ok(list);
+        }
+
     }
 }

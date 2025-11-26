@@ -27,7 +27,7 @@ namespace Ohd.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var (ok, error, token, requireChangePassword) = await _auth.Login(request);
+            var (ok, error, token, requireChangePassword, role) = await _auth.Login(request);
 
             if (!ok || token == null)
                 return Unauthorized(new { message = error ?? "Email hoặc mật khẩu không đúng" });
@@ -35,8 +35,10 @@ namespace Ohd.Controllers
             return Ok(new
             {
                 token,
+                role,
                 requireChangePassword
             });
+
         }
 
         // ==========================

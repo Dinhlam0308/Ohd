@@ -2,8 +2,7 @@ import api from "./api";
 
 const auth = {
     login(data) {
-        // data: { email, password }
-        return api.post("/auth/login", data);
+        return api.post("/auth/login", data).then(res => res.data);
     },
 
     changePasswordFirstLogin(data) {
@@ -20,9 +19,7 @@ const auth = {
         return api.post("/auth/reset-password", data);
     },
     googleLogin(data) {
-        return api
-            .post("/auth/google-login", data)
-            .then((res) => res.data);
+        return api.post("/auth/google-login", data).then(res => res.data);
     }
 
 };

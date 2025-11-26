@@ -16,8 +16,8 @@ namespace Ohd.Repositories.Implementations
 
         public async Task<List<RequestStatus>> GetRequestStatusesAsync()
         {
-            return await _context.requeststatus
-                .OrderBy(x => x.id)   // cột id trong table request_statuses
+            return await _context.RequestStatus
+                .OrderBy(x => x.Id)   // cột id trong table request_statuses
                 .ToListAsync();
         }
 

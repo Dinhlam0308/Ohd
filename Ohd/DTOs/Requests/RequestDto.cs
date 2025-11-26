@@ -8,6 +8,7 @@ namespace Ohd.DTOs.Requests
         public string? Description { get; set; }
         public int SeverityId { get; set; }
         public int? PriorityId { get; set; }
+        public DateTime? DueDate { get; set; }
     }
 
     public class RequestUpdateDto
@@ -16,6 +17,7 @@ namespace Ohd.DTOs.Requests
         public string? Description { get; set; }
         public int? PriorityId { get; set; }
         public string? Remarks { get; set; }
+        public DateTime? DueDate { get; set; }
     }
 
     public class RequestChangeStatusDto
@@ -23,5 +25,7 @@ namespace Ohd.DTOs.Requests
         public int ToStatusId { get; set; }
         public long ChangedByUserId { get; set; }
         public string? Remarks { get; set; }
+        
+        public DateTime? CompletedAt { get; set; }
     }
 }

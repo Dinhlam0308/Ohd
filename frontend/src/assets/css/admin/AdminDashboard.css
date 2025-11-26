@@ -1,59 +1,55 @@
 @import "tailwindcss";
 
 @layer components {
-
-    /* ===================================================
-       FIX HOÀN TOÀN BUTTON BỊ NỀN ĐEN
-       =================================================== */
-
-    /* LOGOUT BUTTON */
+    /* LOGOUT BUTTON — override nền đen */
     .admin-logout-btn {
         background: rgba(255, 255, 255, 0.20) !important;
-        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        border: 1px solid rgba(255, 255, 255, 0.30) !important;
         color: #1e293b !important;
-        backdrop-filter: blur(14px) !important;
-        -webkit-backdrop-filter: blur(14px) !important;
-        padding: 8px 18px !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
         border-radius: 14px !important;
-        font-size: 14px !important;
+        padding: 8px 18px !important;
         font-weight: 500 !important;
-        transition: all 0.2s ease !important;
+        transition: all .2s ease !important;
     }
     .admin-logout-btn:hover {
         background: rgba(255, 255, 255, 0.35) !important;
     }
 
-    /* SIDEBAR TOGGLE BUTTON */
+
+    /* SIDEBAR TOGGLE << — also override black */
     .admin-toggle-btn {
         background: rgba(255, 255, 255, 0.15) !important;
-        border: 1px solid rgba(255, 255, 255, 0.30) !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
         color: #ffffff !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
         border-radius: 12px !important;
-        width: 30px !important;
-        height: 30px !important;
         transition: all .2s ease !important;
     }
     .admin-toggle-btn:hover {
         background: rgba(255, 255, 255, 0.25) !important;
     }
-
-    /* ===================================================
-       ROOT LAYOUT
-       =================================================== */
-
+    /* ============================
+       ROOT
+    ============================ */
     .admin-shell {
         @apply w-screen h-screen bg-[#F6F8FC] text-slate-800 flex overflow-hidden;
     }
 
-    /* ===================================================
-       SIDEBAR
-       =================================================== */
-
+    /* ============================
+       SIDEBAR – Premium Blue Mix
+    ============================ */
     .admin-sidebar {
         width: 260px;
-        background: linear-gradient(180deg,#1E3A8A,#355ACF,#4F8DFD,#7EB6FF);
+        background: linear-gradient(
+                180deg,
+                #1E3A8A 0%,
+                #355ACF 40%,
+                #4F8DFD 75%,
+                #7EB6FF 100%
+        );
         @apply flex flex-col border-r border-blue-300/30 shadow-2xl text-white transition-all duration-200;
     }
 
@@ -62,181 +58,540 @@
     }
 
     .admin-sidebar-header {
-        @apply flex items-center justify-between px-4 py-4 border-b border-white/10;
+        @apply flex items-center gap-3 px-4 py-4 border-b border-white/10;
     }
 
     .logo-circle {
-        @apply w-10 h-10 rounded-xl bg-white/25 backdrop-blur-sm flex items-center justify-center font-bold shadow-md;
+        @apply w-10 h-10 rounded-xl bg-white/25 backdrop-blur-sm
+        flex items-center justify-center text-white font-bold shadow-md;
     }
 
     .logo-title {
-        @apply text-[15px] font-semibold tracking-wide;
+        @apply text-[15px] font-semibold tracking-wide text-white;
     }
 
     .logo-sub {
         @apply text-xs text-blue-100;
     }
 
+    /* ============================
+       MENU
+    ============================ */
     .admin-menu {
         @apply flex-1 py-4 space-y-1 overflow-y-auto;
     }
 
     .admin-menu-item {
-        @apply w-full flex items-center gap-3 px-4 py-3 rounded-lg text-blue-50
-        text-[15px] font-medium tracking-wide transition;
+        @apply w-full flex items-center gap-3 px-4 py-3 rounded-lg
+        text-blue-50 text-[15px] font-medium tracking-wide transition;
         background: transparent !important;
     }
 
     .admin-menu-item:hover {
-        background: rgba(255,255,255,0.12);
+        background: rgba(255, 255, 255, 0.12);
+        @apply shadow-sm;
     }
 
     .admin-menu-item.active {
-        background: rgba(255,255,255,0.25);
-        border: 1px solid rgba(255,255,255,0.35);
-        @apply backdrop-blur-md shadow-lg;
+        background: rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        @apply backdrop-blur-md shadow-lg text-white;
     }
 
-    /* ===================================================
-       HEADER
-       =================================================== */
+    .admin-menu-icon {
+        @apply text-lg;
+    }
 
+    .admin-toggle-btn {
+        @apply w-7 h-7 rounded-full bg-white/20 text-white text-xs
+        flex items-center justify-center hover:bg-white/30 transition;
+    }
+
+    /* ============================
+       MAIN AREA
+    ============================ */
+    .admin-main {
+        @apply flex-1 flex flex-col bg-[#F6F8FC];
+    }
+
+    /* ============================
+       HEADER
+    ============================ */
     .admin-header {
-        background: linear-gradient(90deg,#1E3A8A,#355ACF,#4F8DFD,#7EB6FF);
-        @apply flex items-center justify-between px-8 py-4 shadow-md text-white;
+        background: linear-gradient(90deg, #1E3A8A, #355ACF, #4F8DFD, #7EB6FF);
+        @apply flex items-center justify-between px-8 py-4
+        shadow-md border-b border-blue-200/20 text-white;
+    }
+
+    .admin-header-title {
+        @apply text-xl font-semibold tracking-wide text-white;
+    }
+
+    .admin-header-sub {
+        @apply text-xs text-blue-100;
+    }
+
+    .admin-header-right {
+        @apply flex items-center gap-3;
     }
 
     .admin-avatar {
         @apply w-9 h-9 rounded-full bg-gradient-to-br from-blue-300 to-blue-600
-        flex items-center justify-center font-semibold shadow-lg;
+        text-white shadow-lg flex items-center justify-center font-semibold;
     }
 
-    /* ===================================================
-       CONTENT
-       =================================================== */
-
+    /* ============================
+       CONTENT + PANELS
+    ============================ */
     .admin-content {
         @apply flex-1 p-6 overflow-y-auto;
     }
 
-    /* ===================================================
-       GLASS PANEL
-       =================================================== */
+    .admin-config-panel {
+        @apply bg-white border border-blue-100 shadow-md rounded-xl p-6 space-y-6;
+    }
 
+    /* ============================
+       FILTER INPUT
+    ============================ */
+    .config-filter input,
+    .config-filter select {
+        @apply px-3 py-2 text-xs rounded-lg bg-white border border-blue-200
+        text-slate-700 focus:ring-2 focus:ring-blue-400;
+    }
+
+    /* ============================
+       TABLE
+    ============================ */
+    .config-table thead {
+        background: linear-gradient(90deg, #E8F0FF, #F3F8FF);
+    }
+
+    .config-table thead th {
+        @apply text-blue-700 border-b border-blue-200 px-3 py-2
+        text-left uppercase text-[11px] font-semibold;
+    }
+
+    .config-table tbody td {
+        @apply px-3 py-2 border-b border-slate-200 text-slate-700;
+    }
+
+    /* ============================
+       BASIC BUTTONS (nếu cần dùng chỗ khác)
+    ============================ */
+    .btn-primary {
+        @apply bg-blue-600 text-white px-3 py-2 rounded-lg text-xs hover:bg-blue-700;
+    }
+
+    .btn-danger {
+        @apply bg-white border border-rose-400 text-rose-600 hover:bg-rose-100;
+    }
+
+    /* ============================
+       GLASS PANEL
+    ============================ */
     .glass-panel {
-        @apply backdrop-blur-xl bg-white/60 border border-white/20 rounded-2xl
-        shadow-[0_4px_20px_rgba(0,0,0,0.05)];
+        @apply backdrop-blur-xl bg-white/60 border border-white/20 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)];
     }
 
     .glass-header {
         @apply text-slate-800 font-semibold;
     }
 
-    /* ===================================================
-       GLASS INPUT
-       =================================================== */
-
     .glass-input {
-        @apply w-full px-3 py-2 rounded-lg bg-white/70 backdrop-blur-md
-        border border-gray-300/30 text-slate-800 shadow-sm
-        focus:ring-2 focus:ring-slate-300;
+        @apply w-full px-3 py-2 rounded-lg bg-white/70 backdrop-blur-md border border-gray-300/30
+        text-slate-800 placeholder-slate-400 shadow-sm focus:ring-2 focus:ring-slate-300;
     }
-
-    /* ===================================================
-       GLASS TABLE
-       =================================================== */
 
     .glass-table {
         @apply w-full text-xs text-slate-700;
     }
+
     .glass-table th {
         @apply bg-white/30 backdrop-blur-sm border-b border-white/20 px-3 py-2;
     }
+
     .glass-table td {
         @apply border-b border-gray-300/30 px-3 py-2;
     }
 
-    /* ===================================================
-       GLASS BUTTONS — APPLE STYLE (FINAL)
-       =================================================== */
+    /* ============================
+       APPLE GLASS BUTTONS
+    ============================ */
+    /* ============================================
+    GLASS BUTTONS – FIX BLACK BACKGROUND
+    FINAL VERSION – ALWAYS OVERRIDES
+ ============================================ */
 
     .glass-btn {
-        background: rgba(255,255,255,0.20) !important;
-        border: 1px solid rgba(255,255,255,0.30) !important;
-        color: #1e293b !important;
+        background: rgba(255, 255, 255, 0.20) !important;
+        border: 1px solid rgba(255, 255, 255, 0.30) !important;
+        color: #1e293b !important; /* slate-800 */
+
         backdrop-filter: blur(12px) !important;
         -webkit-backdrop-filter: blur(12px) !important;
+
         padding: 8px 18px !important;
         border-radius: 14px !important;
         font-size: 14px !important;
         font-weight: 500 !important;
+
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
+
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
         cursor: pointer !important;
-        transition: all .2s ease !important;
+
+        transition: all 0.2s ease !important;
     }
 
     .glass-btn:hover {
-        background: rgba(255,255,255,0.30) !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+        background: rgba(255, 255, 255, 0.30) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.10) !important;
     }
 
+
+    /* ===== Primary Button (Create / Save) ===== */
     .glass-btn-primary {
-        background: rgba(255,255,255,0.45) !important;
-        border-color: rgba(255,255,255,0.60) !important;
-        color: #0f172a !important;
+        background: rgba(255, 255, 255, 0.45) !important;
+        border-color: rgba(255, 255, 255, 0.60) !important;
+        color: #0f172a !important; /* slate-900 */
+
         font-weight: 600 !important;
     }
+
     .glass-btn-primary:hover {
-        background: rgba(255,255,255,0.55) !important;
+        background: rgba(255, 255, 255, 0.55) !important;
     }
 
+
+    /* ===== Secondary (Edit) ===== */
     .glass-btn-light {
-        background: rgba(255,255,255,0.15) !important;
-        border-color: rgba(255,255,255,0.25) !important;
-        color: #334155 !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        border-color: rgba(255, 255, 255, 0.25) !important;
+        color: #334155 !important; /* slate-700 */
     }
 
+    .glass-btn-light:hover {
+        background: rgba(255, 255, 255, 0.25) !important;
+    }
+
+
+    /* ===== Danger (Delete) ===== */
     .glass-btn-danger {
-        background: rgba(255,0,0,0.12) !important;
-        border-color: rgba(255,0,0,0.25) !important;
-        color: #dc2626 !important;
+        background: rgba(255, 0, 0, 0.10) !important;
+        border-color: rgba(255, 0, 0, 0.25) !important;
+        color: #dc2626 !important; /* red-600 */
     }
 
-    /* ===================================================
-       GLASS TABS (APPLE STYLE)
-       =================================================== */
+    .glass-btn-danger:hover {
+        background: rgba(255, 0, 0, 0.18) !important;
+    }
+
+    .glass-icon-btn {
+        @apply w-8 h-8 flex items-center justify-center
+        rounded-xl bg-white/15 border border-white/25
+        backdrop-blur-md hover:bg-white/25 hover:shadow;
+    }
+
+    .glass-toast {
+        @apply px-3 py-2 rounded-lg bg-blue-50/80 border border-blue-300/40 text-blue-700 shadow backdrop-blur-md;
+    }
+
+    /* ============================
+       GLASS TABS – Transparent White
+    ============================ */
+    /* ============================================
+    GLASS TABS – FIX BLACK BACKGROUND OVERRIDE
+    (FINAL VERSION – ALWAYS WINS)
+ ============================================ */
 
     .glass-tab {
-        background: rgba(255,255,255,0.20) !important;
-        color: #334155 !important;
-        border: 1px solid rgba(255,255,255,0.30) !important;
+        background: rgba(255, 255, 255, 0.20) !important;
+        color: #334155 !important; /* slate-700 */
+        border: 1px solid rgba(255, 255, 255, 0.30) !important;
         backdrop-filter: blur(12px) !important;
         -webkit-backdrop-filter: blur(12px) !important;
+
         padding: 8px 16px !important;
         border-radius: 14px !important;
         font-size: 14px !important;
         font-weight: 500 !important;
+
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08) !important;
         cursor: pointer !important;
-        transition: all .2s ease !important;
+
+        transition: all 0.2s ease !important;
     }
 
     .glass-tab:hover {
-        background: rgba(255,255,255,0.30) !important;
+        background: rgba(255, 255, 255, 0.30) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.10) !important;
     }
 
+    /* ACTIVE TAB — Trắng rõ hơn */
     .glass-tab-active {
-        background: rgba(255,255,255,0.45) !important;
-        border-color: rgba(255,255,255,0.60) !important;
-        color: #0f172a !important;
+        background: rgba(255, 255, 255, 0.45) !important;
+        color: #0f172a !important; /* slate-900 */
+        border-color: rgba(255, 255, 255, 0.60) !important;
         box-shadow: 0 6px 14px rgba(0,0,0,0.12) !important;
     }
 
+    /* INACTIVE TAB — Mờ hơn */
     .glass-tab-inactive {
-        background: rgba(255,255,255,0.15) !important;
-        border-color: rgba(255,255,255,0.25) !important;
-        color: #475569 !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: #475569 !important; /* slate-600 */
+        border-color: rgba(255, 255, 255, 0.25) !important;
+    }
+    /* ============================
+       GLASS PANEL (Wrapper)
+    ============================ */
+    .admin-panel {
+        @apply backdrop-blur-xl bg-white/60 border border-white/30
+        rounded-2xl shadow-lg p-6;
+    }
+
+    .admin-panel-header {
+        @apply mb-4 flex items-center gap-3;
+    }
+
+    .admin-panel-title {
+        @apply text-lg font-semibold text-slate-800;
+    }
+
+    .admin-panel-sub {
+        @apply text-xs text-slate-500;
+    }
+
+    /* ============================
+       FORM LABEL + INPUT
+    ============================ */
+    .form-label {
+        @apply block text-xs font-medium text-slate-700 mb-1;
+    }
+
+    .form-input {
+        @apply w-full px-3 py-2 rounded-lg
+        bg-white/70 backdrop-blur-md
+        border border-slate-300/40
+        text-slate-800 shadow-sm
+        focus:ring-2 focus:ring-slate-400;
+    }
+
+    /* ============================
+       TABLE GLASS STYLE
+    ============================ */
+    .admin-table {
+        @apply w-full text-sm text-slate-700 border-collapse;
+    }
+
+    .admin-table thead th {
+        @apply bg-white/40 backdrop-blur-md
+        border-b border-white/20
+        px-3 py-2 text-left text-xs font-semibold;
+    }
+
+    .admin-table td {
+        @apply px-3 py-2 border-b border-slate-200/50 text-slate-700;
+    }
+
+    /* ============================
+       BUTTONS
+    ============================ */
+    .btn-primary {
+        @apply bg-white/80 border border-slate-300
+        text-slate-900 font-semibold
+        rounded-lg px-4 py-2
+        hover:bg-white shadow-sm;
+    }
+
+    .btn-outline {
+        @apply bg-white/40 border border-white/60
+        text-slate-700 rounded-lg px-4 py-2
+        hover:bg-white/60;
+    }
+
+    .btn-danger {
+        @apply bg-red-50 border border-red-300
+        text-red-600 rounded-lg px-3 py-1.5
+        hover:bg-red-100;
+    }
+
+    .btn-xs {
+        @apply text-xs px-2 py-1 rounded-lg;
+    }
+
+    /* ============================
+       MESSAGE BOX (Success / Error)
+    ============================ */
+    .admin-message {
+        @apply text-xs rounded-lg px-3 py-2
+        bg-amber-500/20 text-amber-900
+        border border-amber-400/40;
+    }
+    button, .button {
+        @apply inline-flex items-center justify-center select-none
+        font-medium text-sm px-4 py-2 rounded-xl transition-all;
+        background: rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #0f172a;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    button:hover, .button:hover {
+        background: rgba(255, 255, 255, 0.40);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    /* ================================
+       PRIMARY (Create / Save)
+    ================================ */
+    .btn-primary {
+        @apply font-semibold;
+        background: rgba(255, 255, 255, 0.55) !important;
+        border-color: rgba(255, 255, 255, 0.75) !important;
+        color: #0f172a !important;
+    }
+
+    .btn-primary:hover {
+        background: rgba(255, 255, 255, 0.70) !important;
+    }
+
+    /* ================================
+       OUTLINE (Secondary / Edit)
+    ================================ */
+    .btn-outline {
+        background: rgba(255, 255, 255, 0.18) !important;
+        border-color: rgba(255, 255, 255, 0.35) !important;
+        color: #334155 !important;
+    }
+
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.30) !important;
+    }
+
+    /* ================================
+       DANGER (Delete)
+    ================================ */
+    .btn-danger {
+        @apply text-red-600;
+        background: rgba(255, 0, 0, 0.12) !important;
+        border-color: rgba(255, 0, 0, 0.30) !important;
+    }
+
+    .btn-danger:hover {
+        background: rgba(255, 0, 0, 0.20) !important;
+    }
+
+    /* ================================
+       EXTRA SMALL (btn-xs)
+    ================================ */
+    .btn-xs {
+        @apply text-xs px-2 py-1 rounded-lg;
+    }
+
+    /* ================================
+       FULL WIDTH + FLEX SIZE
+    ================================ */
+    .w-full {
+        @apply w-full;
+    }
+
+    .flex-1 {
+        @apply flex-1;
+    }
+    .btn-glass {
+        @apply inline-flex items-center justify-center
+        px-4 py-2 rounded-xl text-sm font-medium
+        transition-all cursor-pointer select-none;
+
+        background: rgba(255, 255, 255, 0.25) !important;
+        border: 1px solid rgba(255, 255, 255, 0.45) !important;
+        color: #0f172a !important; /* text slate-900 */
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+    }
+
+    .btn-glass:hover {
+        background: rgba(255, 255, 255, 0.40) !important;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12) !important;
+    }
+
+    /* ================================
+       SECONDARY BUTTON — dành cho Upload Excel
+    ================================ */
+    .btn-secondary {
+        border-color: rgba(255,255,255,0.42) !important;
+    }
+
+ 
+
+    /* ================================
+       EXTRA SMALL (Upload Excel dùng)
+    ================================ */
+    .btn-xs {
+        @apply text-xs px-2 py-1 rounded-lg;
+    }
+    /* ===========================
+       Modern Block Pagination
+       (Style giống hình bạn gửi)
+       =========================== */
+
+    .admin-pagination {
+        display: flex;
+        align-items: center;
+        gap: 0; /* không gap để giống dạng block liền mạch */
+        justify-content: center;
+        margin-top: 24px;
+    }
+
+    /* Vùng bao quanh */
+    .admin-pagination-container {
+        display: flex;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    /* Mỗi nút */
+    .admin-page-box {
+        padding: 10px 18px;
+        min-width: 48px;
+        text-align: center;
+        font-size: 15px;
+        cursor: pointer;
+        color: #374151;
+        border-right: 1px solid #e5e7eb;
+        transition: all .2s ease;
+        background: #ffffff;
+    }
+
+    .admin-page-box:last-child {
+        border-right: none;
+    }
+
+    /* Hover */
+    .admin-page-box:hover:not(.disabled):not(.active) {
+        background: #f5f5f5;
+    }
+
+    /* Disabled */
+    .admin-page-box.disabled {
+        color: #c7c7c7;
+        cursor: not-allowed;
+    }
+
+    /* Active (màu xám nhạt như mẫu) */
+    .admin-page-box.active {
+        background: #f0f0f0;
+        color: #111;
+        font-weight: 600;
     }
 
 }

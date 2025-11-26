@@ -1,6 +1,6 @@
 namespace Ohd.Entities
 {
-    public class user_roles
+    public class UserRoles
     {
         public long user_id { get; set; }
         public int role_id { get; set; }

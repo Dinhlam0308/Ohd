@@ -12,6 +12,7 @@ namespace Ohd.Repositories.Implementations
         public RequestRepository(OhdDbContext context)
         {
             _context = context;
+        
         }
 
         public async Task<List<Request>> GetAllAsync()
@@ -53,6 +54,27 @@ namespace Ohd.Repositories.Implementations
             _context.request_history.Add(history);
             await _context.SaveChangesAsync();
         }
+        public async Task<int> CountOverdueAsync()
+        {
+            var now = DateTime.UtcNow;
+
+            return await _context.requests
+                .Where(r => r.DueDate != null
+                            && r.DueDate < now
+                            && r.CompletedAt == null)
+                .CountAsync();
+        
+        }
+        public async Task<List<Request>> GetOverdueListAsync()
+        {
+            var now = DateTime.UtcNow;
+            return await _context.requests
+                .Where(r => r.DueDate != null 
+                            && r.DueDate < now 
+                            && r.CompletedAt == null)
+                .ToListAsync();
+        }
+
     }
 
 }

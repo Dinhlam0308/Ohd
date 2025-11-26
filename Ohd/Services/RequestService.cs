@@ -14,6 +14,7 @@ namespace Ohd.Services
         {
             _repo = repo;
             _mapper = mapper;
+        
         }
 
         // ============================
@@ -101,5 +102,15 @@ namespace Ohd.Services
         {
             return await _repo.DeleteAsync(id);
         }
+        public async Task<int> CountOverdueAsync()
+        {
+            return await _repo.CountOverdueAsync();
+        }
+
+        public async Task<List<Request>> GetOverdueListAsync()
+        {
+            return await _repo.GetOverdueListAsync();
+        }
+
     }
 }
