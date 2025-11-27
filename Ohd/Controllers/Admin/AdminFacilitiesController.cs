@@ -21,14 +21,48 @@ namespace Ohd.Controllers.Admin
             _adminUserService = adminUserService;
         }
 
+    
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetFacilities(
+            int page = 1,
+            int pageSize = 10,
+            string? search = ""
+        )
         {
-            var data = await _db.Facilities
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var query = _db.Facilities.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+                query = query.Where(f => f.Name.Contains(search));
+            }
+
+            var total = await query.CountAsync();
+
+            var items = await query
                 .OrderByDescending(f => f.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(f => new {
+                    f.Id,
+                    f.Name,
+                    f.Description,
+                    f.CreatedAt,
+                    f.HeadUserId
+                })
                 .ToListAsync();
 
-            return Ok(data);
+            return Ok(new
+            {
+                items,
+                total,
+                page,
+                pageSize,
+                totalPages = (int)Math.Ceiling(total / (double)pageSize)
+            });
         }
 
         [HttpPost]

@@ -169,3 +169,4 @@
 /Users/lamdinh/RiderProjects/online_help_desk/Ohd/obj/Debug/net9.0/Ohd.pdb
 /Users/lamdinh/RiderProjects/online_help_desk/Ohd/obj/Debug/net9.0/Ohd.genruntimeconfig.cache
 /Users/lamdinh/RiderProjects/online_help_desk/Ohd/obj/Debug/net9.0/ref/Ohd.dll
+/Users/lamdinh/RiderProjects/online_help_desk/Ohd/bin/Debug/net9.0/CloudinaryDotNet.dll

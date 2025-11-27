@@ -1,44 +1,54 @@
 import api from "./api";
 
 const lookup = {
-    getRequestStatuses() {
-        return api.get("/lookups/request-statuses");
+    getRequestStatuses: async () => {
+        const res = await api.get("/lookups/request-statuses");
+        return res.data;
     },
 
-    getSeverities() {
-        return api.get("/lookups/severities");
+    getSeverities: async () => {
+        const res = await api.get("/lookups/severities");
+        return res.data;
     },
 
-    getRequestPriorities() {
-        return api.get("/lookups/priorities");
+    getRequestPriorities: async () => {
+        const res = await api.get("/lookups/priorities");
+        return res.data;
     },
 
-    getFacilities() {
-        return api.get("/lookups/facilities");
+    getFacilities: async () => {
+        const res = await api.get("/lookups/facilities");
+        return res.data;
     },
 
-    getTags() {
-        return api.get("/lookups/tags");
+    getTags: async () => {
+        const res = await api.get("/lookups/tags");
+        return res.data;
     },
 
-    getSkills() {
-        return api.get("/lookups/skills");
+    getSkills: async () => {
+        const res = await api.get("/lookups/skills");
+        return res.data;
     },
 
-    getTeams() {
-        return api.get("/lookups/teams");
+    getTeams: async () => {
+        const res = await api.get("/lookups/teams");
+        return res.data;
     },
 
-    getSlaPolicies() {
-        return api.get("/lookups/sla-policies");
+    getSlaPolicies: async () => {
+        const res = await api.get("/lookups/sla-policies");
+        return res.data;
     },
 
-    getMaintenanceWindows() {
-        return api.get("/lookups/maintenance-windows");
+    getMaintenanceWindows: async () => {
+        const res = await api.get("/lookups/maintenance-windows");
+        return res.data;
     },
 
-    getSystemSettings() {
-        return api.get("/lookups/system-settings");
+    getSystemSettings: async () => {
+        const res = await api.get("/lookups/system-settings");
+        return res.data;
     },
 };
 

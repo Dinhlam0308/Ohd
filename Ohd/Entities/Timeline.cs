@@ -8,5 +8,7 @@ namespace Ohd.Entities
         public string? note { get; set; }
         public DateTime created_at { get; set; }
         public string? user_name { get; set; }
+        public bool is_internal { get; set; }
+
     }
-}
+} 

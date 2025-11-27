@@ -89,7 +89,7 @@ public async Task<bool> DeleteSeverityAsync(int id)
             bool? isFinal = null,
             bool? isOverdue = null)
         {
-            var query = _db.RequestStatus.AsQueryable();
+            var query = _db.request_statuses.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -115,7 +115,7 @@ public async Task<bool> DeleteSeverityAsync(int id)
         public async Task<RequestStatus?> CreateStatusAsync(RequestStatusCreateDto dto)
         {
             // Không cho trùng Code
-            bool codeExists = await _db.RequestStatus
+            bool codeExists = await _db.request_statuses
                 .AnyAsync(x => x.Code == dto.Code);
             if (codeExists)
             {
@@ -132,14 +132,14 @@ public async Task<bool> DeleteSeverityAsync(int id)
                 CreatedAt = DateTime.UtcNow
             };
 
-            _db.RequestStatus.Add(entity);
+            _db.request_statuses.Add(entity);
             await _db.SaveChangesAsync();
             return entity;
         }
 
         public async Task<bool> UpdateStatusAsync(int id, RequestStatusUpdateDto dto)
         {
-            var st = await _db.RequestStatus.FindAsync(id);
+            var st = await _db.request_statuses.FindAsync(id);
             if (st == null) return false;
 
             st.Name = dto.Name;
@@ -153,10 +153,10 @@ public async Task<bool> DeleteSeverityAsync(int id)
 
         public async Task<bool> DeleteStatusAsync(int id)
         {
-            var st = await _db.RequestStatus.FindAsync(id);
+            var st = await _db.request_statuses.FindAsync(id);
             if (st == null) return false;
 
-            _db.RequestStatus.Remove(st);
+            _db.request_statuses.Remove(st);
             await _db.SaveChangesAsync();
             return true;
         }
@@ -164,7 +164,7 @@ public async Task<bool> DeleteSeverityAsync(int id)
         // Gửi thông báo cho các request ở trạng thái quá hạn này
         public async Task<int> SendOverdueNotificationsForStatusAsync(int statusId)
         {
-            var status = await _db.RequestStatus.FindAsync(statusId);
+            var status = await _db.request_statuses.FindAsync(statusId);
             if (status == null || !status.IsOverdue)
                 return 0;
 

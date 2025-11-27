@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Ohd")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1f2e3dd3365e2e09fd5cf6764f382d3ffd47e5fb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ce9c1b9cd2bd89e04a3f32b586b87ea7d67e6ae5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Ohd")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Ohd")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -5,6 +5,14 @@ import adminApi from "../../api/admin";
 export default function AdminFacilitiesPanel() {
     const [facilities, setFacilities] = useState([]);
     const [technicians, setTechnicians] = useState([]);
+
+    const [search, setSearch] = useState("");
+
+    // Pagination
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(10);
+    const [total, setTotal] = useState(0);
+
     const [loading, setLoading] = useState(false);
 
     const [form, setForm] = useState({
@@ -15,15 +23,21 @@ export default function AdminFacilitiesPanel() {
     });
 
     const [message, setMessage] = useState("");
-    const [messageType, setMessageType] = useState(""); // success | error
+    const [messageType, setMessageType] = useState("");
 
     // ==============================================
-    // LOAD FACILITIES
+    // LOAD FACILITIES (Có search + pagination)
     // ==============================================
     const loadFacilities = async () => {
         try {
-            const data = await adminApi.getFacilities();
-            setFacilities(data || []);
+            const res = await adminApi.getFacilities({
+                page,
+                pageSize,
+                search,
+            });
+
+            setFacilities(res.items || []);
+            setTotal(res.total || 0);
         } catch (err) {
             console.error("Failed to load facilities:", err);
         }
@@ -44,11 +58,8 @@ export default function AdminFacilitiesPanel() {
     useEffect(() => {
         loadFacilities();
         loadTechnicians();
-    }, []);
+    }, [page, search]);
 
-    // ==============================================
-    // RESET FORM
-    // ==============================================
     const resetForm = () => {
         setForm({
             id: null,
@@ -60,9 +71,6 @@ export default function AdminFacilitiesPanel() {
         setMessageType("");
     };
 
-    // ==============================================
-    // EDIT
-    // ==============================================
     const handleEdit = (f) => {
         setForm({
             id: f.id,
@@ -72,9 +80,6 @@ export default function AdminFacilitiesPanel() {
         });
     };
 
-    // ==============================================
-    // DELETE
-    // ==============================================
     const handleDelete = async (f) => {
         if (!window.confirm(`Delete facility "${f.name}"?`)) return;
 
@@ -82,7 +87,6 @@ export default function AdminFacilitiesPanel() {
             await adminApi.deleteFacility(f.id);
             setMessage("Facility deleted successfully.");
             setMessageType("success");
-
             loadFacilities();
             resetForm();
         } catch (err) {
@@ -92,16 +96,12 @@ export default function AdminFacilitiesPanel() {
         }
     };
 
-    // ==============================================
-    // CREATE / UPDATE
-    // ==============================================
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage("");
         setLoading(true);
 
-        // ❌ Validate: Technician is required
-        if (!form.headUserId || form.headUserId === "") {
+        if (!form.headUserId) {
             setMessage("Technician cannot be empty.");
             setMessageType("error");
             setLoading(false);
@@ -135,23 +135,42 @@ export default function AdminFacilitiesPanel() {
         }
     };
 
+    // Pagination numbers
+    const totalPages = Math.ceil(total / pageSize);
+    const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
     return (
         <div className="grid grid-cols-1 xl:grid-cols-[2fr,1.2fr] gap-6">
 
             {/* FACILITY LIST */}
-            <div className="admin-panel">
-                <div className="admin-panel-header">
-                    <h2 className="admin-panel-title">Facilities</h2>
+            <div className="glass-panel p-6">
+
+                <div className="admin-panel-header mb-4">
+                    <h2 className="glass-header">Facilities</h2>
                     <p className="admin-panel-sub">
-                        Manage facility list and assigned Technician.
+                        Manage facility list & assigned Technician.
                     </p>
                 </div>
 
+                {/* SEARCH BAR */}
+                <div className="mb-4">
+                    <input
+                        type="text"
+                        placeholder="🔍 Search facility..."
+                        className="glass-input w-64"
+                        value={search}
+                        onChange={(e) => {
+                            setPage(1); // reset page
+                            setSearch(e.target.value);
+                        }}
+                    />
+                </div>
+
                 <div className="overflow-x-auto">
-                    <table className="admin-table">
+                    <table className="glass-table">
                         <thead>
                         <tr>
-                            <th>Facility Name</th>
+                            <th>Name</th>
                             <th>Description</th>
                             <th>Technician</th>
                             <th>Actions</th>
@@ -169,24 +188,20 @@ export default function AdminFacilitiesPanel() {
 
                         {facilities.map((f) => (
                             <tr key={f.id}>
-                                <td className="text-sm text-black">{f.name}</td>
-                                <td className="text-sm text-slate-700">
-                                    {f.description || "—"}
-                                </td>
-                                <td className="text-sm text-slate-900">
+                                <td>{f.name}</td>
+                                <td>{f.description || "—"}</td>
+                                <td>
                                     {technicians.find((t) => t.id === f.headUserId)?.username || "—"}
                                 </td>
-
                                 <td className="space-x-2">
                                     <button
-                                        className="btn-xs btn-outline"
+                                        className="glass-btn glass-btn-light"
                                         onClick={() => handleEdit(f)}
                                     >
                                         Edit
                                     </button>
-
                                     <button
-                                        className="btn-xs btn-danger"
+                                        className="glass-btn glass-btn-danger"
                                         onClick={() => handleDelete(f)}
                                     >
                                         Delete
@@ -197,21 +212,54 @@ export default function AdminFacilitiesPanel() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* PAGINATION CENTERED */}
+                <div className="flex justify-center gap-2 mt-5">
+
+                    <button
+                        className="glass-btn glass-btn-light"
+                        disabled={page === 1}
+                        onClick={() => setPage(page - 1)}
+                    >
+                        «
+                    </button>
+
+                    {pages.map((p) => (
+                        <button
+                            key={p}
+                            className={`glass-btn ${
+                                p === page
+                                    ? "glass-btn-primary"
+                                    : "glass-btn-light"
+                            }`}
+                            onClick={() => setPage(p)}
+                        >
+                            {p}
+                        </button>
+                    ))}
+
+                    <button
+                        className="glass-btn glass-btn-light"
+                        disabled={page >= totalPages}
+                        onClick={() => setPage(page + 1)}
+                    >
+                        »
+                    </button>
+                </div>
             </div>
 
             {/* FORM */}
-            <div className="admin-panel">
-                <div className="admin-panel-header">
-                    <h2 className="admin-panel-title">
-                        {form.id ? "Update Facility" : "Create New Facility"}
-                    </h2>
-                </div>
+            <div className="glass-panel p-6">
+                <h2 className="glass-header mb-3">
+                    {form.id ? "Update Facility" : "Create Facility"}
+                </h2>
 
-                {/* MESSAGE */}
                 {message && (
                     <div
                         className={`mb-3 text-sm font-semibold ${
-                            messageType === "error" ? "text-red-400" : "text-green-400"
+                            messageType === "error"
+                                ? "text-red-400"
+                                : "text-green-400"
                         }`}
                     >
                         {message}
@@ -223,7 +271,7 @@ export default function AdminFacilitiesPanel() {
                         <label className="form-label">Facility Name</label>
                         <input
                             type="text"
-                            className="form-input"
+                            className="glass-input"
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
                             required
@@ -233,7 +281,7 @@ export default function AdminFacilitiesPanel() {
                     <div>
                         <label className="form-label">Description</label>
                         <textarea
-                            className="form-input"
+                            className="glass-input"
                             rows={3}
                             value={form.description}
                             onChange={(e) =>
@@ -242,11 +290,10 @@ export default function AdminFacilitiesPanel() {
                         />
                     </div>
 
-                    {/* TECHNICIAN REQUIRED FIELD */}
                     <div>
                         <label className="form-label">Technician *</label>
                         <select
-                            className={`form-input ${!form.headUserId ? "border-red-500" : ""}`}
+                            className="glass-input"
                             value={form.headUserId}
                             onChange={(e) =>
                                 setForm({ ...form, headUserId: e.target.value })
@@ -254,33 +301,26 @@ export default function AdminFacilitiesPanel() {
                             required
                         >
                             <option value="">-- Select Technician --</option>
-
                             {technicians.map((t) => (
                                 <option key={t.id} value={t.id}>
                                     {t.username || t.email}
                                 </option>
                             ))}
                         </select>
-
-                        {!form.headUserId && (
-                            <p className="text-xs text-red-500 mt-1">
-                                Technician cannot be empty.
-                            </p>
-                        )}
                     </div>
 
                     <div className="flex gap-3">
-                        <button className="btn-primary flex-1" disabled={loading}>
+                        <button className="glass-btn glass-btn-primary flex-1" disabled={loading}>
                             {loading ? "Saving..." : form.id ? "Update" : "Create"}
                         </button>
 
                         {form.id && (
                             <button
                                 type="button"
-                                className="btn-outline"
+                                className="glass-btn glass-btn-light"
                                 onClick={resetForm}
                             >
-                                Cancel / New
+                                Cancel
                             </button>
                         )}
                     </div>

@@ -18,6 +18,16 @@ export default function AdminLayout({ activeTab, setActiveTab, children }) {
         navigate(item.path);
     };
 
+    // 🟦 LOGOUT HANDLER
+    const handleLogout = () => {
+        // Xoá token / session frontend
+        localStorage.removeItem("token");
+        sessionStorage.clear();
+
+        // Điều hướng về trang login
+        navigate("/login");
+    };
+
     return (
         <div className="admin-shell">
             {/* SIDEBAR */}
@@ -36,7 +46,7 @@ export default function AdminLayout({ activeTab, setActiveTab, children }) {
                         className="admin-toggle-btn"
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     >
-                        {isSidebarOpen ? "«" : "»"} 
+                        {isSidebarOpen ? "«" : "»"}
                     </button>
                 </div>
 
@@ -75,7 +85,11 @@ export default function AdminLayout({ activeTab, setActiveTab, children }) {
                             <div className="admin-user-role">Super Admin</div>
                         </div>
                         <div className="admin-avatar">A</div>
-                        <button className="admin-logout-btn">Logout</button>
+
+                        {/* 🔴 LOGOUT BUTTON */}
+                        <button className="admin-logout-btn" onClick={handleLogout}>
+                            Logout
+                        </button>
                     </div>
                 </header>
 

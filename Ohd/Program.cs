@@ -14,6 +14,7 @@ using Ohd.Repositories.Implementations;
 using Ohd.Mappings;
 using Ohd.Background;
 using OfficeOpenXml;
+using CloudinaryDotNet;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +26,12 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 var connectionString = builder.Configuration.GetConnectionString("OhdConnection");
 var jwtConfig = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtConfig["Key"]!);
-
+var cloudSettings = builder.Configuration.GetSection("Cloudinary");
+var cloudinary = new Cloudinary(new Account(
+    cloudSettings["CloudName"],
+    cloudSettings["ApiKey"],
+    cloudSettings["ApiSecret"]
+));
 // DB
 builder.Services.AddDbContext<OhdDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -77,6 +83,7 @@ builder.Services
         };
     });
 
+builder.Services.AddSingleton(cloudinary);
 // Authorization (ví dụ policy AdminOnly)
 builder.Services.AddAuthorization(options =>
 {
@@ -99,6 +106,7 @@ builder.Services.AddScoped<RequestService>();
 builder.Services.AddScoped<AdminUserService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddHostedService<ReminderWorker>();
+builder.Services.AddScoped<IRequestEndUserService, RequestEndUserService>();
 
 
 

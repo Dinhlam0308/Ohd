@@ -13,7 +13,6 @@ namespace Ohd.Data
         // ==========================
         // Reference Tables
         // ==========================
-        public DbSet<RequestStatus> RequestStatus { get; set; }
         public DbSet<Severity> severities { get; set; }
         public DbSet<Category> categories { get; set; }
         public DbSet<RequestPriority> request_priorities { get; set; }
@@ -55,6 +54,7 @@ namespace Ohd.Data
         public DbSet<UserTeam> user_teams { get; set; }
         public DbSet<RequestTag> request_tags { get; set; }
         public DbSet<MaintenanceWindow> maintenance_windows { get; set; }
+        public DbSet<RequestStatus> request_statuses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -88,6 +88,7 @@ namespace Ohd.Data
 
             modelBuilder.Entity<UserTeam>()
                 .HasKey(x => new { x.user_id, x.team_id });
+            modelBuilder.Entity<Timeline>().Property(x => x.is_internal).HasColumnName("is_internal");
 
             modelBuilder.Entity<RequestTag>()
                 .HasKey(x => new { x.request_id, x.tag_id });
@@ -128,6 +129,8 @@ namespace Ohd.Data
                 entity.Property(e => e.Remarks).HasColumnName("remarks");
                 entity.Property(e => e.CreatedAt).HasColumnName("created_at");
                 entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+                entity.Property(e => e.DueDate).HasColumnName("due_date");
+            
             });
 
             // ============================================================

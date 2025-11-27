@@ -41,7 +41,7 @@ export default function LoginPage() {
                 navigate("/tech/dashboard");
             }
             else {
-                navigate("/user");
+                navigate("/eu");
             }
     } catch (err) {
             const msg =

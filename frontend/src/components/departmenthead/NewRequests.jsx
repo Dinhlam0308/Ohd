@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import departmentheadApi from "../../api/departmenthead";
 
 export default function NewRequests() {
@@ -26,7 +27,11 @@ export default function NewRequests() {
                     <tbody>
                     {requests.map((r) => (
                         <tr key={r.id}>
-                            <td>{r.title}</td>
+                            <td>
+                                <Link className="dh-link" to={`/dh/request/${r.id}`}>
+                                    {r.title}
+                                </Link>
+                            </td>
                             <td><span className="tag-severity">{r.severityId}</span></td>
                             <td>{new Date(r.createdAt).toLocaleString()}</td>
                         </tr>

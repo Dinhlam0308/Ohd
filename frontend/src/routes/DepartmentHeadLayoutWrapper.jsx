@@ -16,6 +16,8 @@ export default function DepartmentHeadLayoutWrapper() {
         { key: "workload", label: "Workload", icon: "💼", path: "/dh/workload" },
         { key: "performance", label: "Performance", icon: "🔥", path: "/dh/performance" },
         { key: "sla", label: "SLA Overview", icon: "⏳", path: "/dh/sla" },
+        { key: "best", label: "Best Technician", icon: "⭐", path: "/dh/technicians/best" },
+        { key: "available", label: "Available Techs", icon: "🧑‍🔧", path: "/dh/technicians/available" },
 
     ];
 

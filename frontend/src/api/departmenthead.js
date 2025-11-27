@@ -22,13 +22,69 @@ const departmenthead = {
         return api.post("/departmenthead/assign", data);
     },
 
+    // Đổi người xử lý (reassign)
+    reassignRequest(data) {
+        // data: { requestId, newAssigneeId }
+        return api.put("/departmenthead/request/reassign", data);
+    },
+
+    // Đóng yêu cầu
+    closeRequest(id) {
+        return api.put(`/departmenthead/request/${id}/close`);
+    },
+
+    // Mở lại yêu cầu
+    reopenRequest(id) {
+        return api.put(`/departmenthead/request/${id}/reopen`);
+    },
+
+    // Chi tiết yêu cầu
+    getRequestDetail(id) {
+        return api.get(`/departmenthead/request/${id}`);
+    },
+
+    // Timeline xử lý của yêu cầu
+    getRequestTimeline(id) {
+        return api.get(`/departmenthead/request/${id}/timeline`);
+    },
+
+    // Tìm kiếm / filter request (priority, status, facility, technician, date range, ...)
+    searchRequests(params) {
+        return api.get("/departmenthead/requests/search", { params });
+    },
+
+    // Thêm comment / ghi chú vào request
+    addComment(requestId, data) {
+        // data: { message, isInternal, ... }
+        return api.post(`/departmenthead/request/${requestId}/comment`, data);
+    },
+
 
     // ============================
     // 2. Technicians
     // ============================
+    // Danh sách technician
     getTechnicians() {
         return api.get("/departmenthead/technicians");
     },
+
+    // Thống kê theo từng technician (KPI, số ticket, SLA, ...)
+    getTechnicianStats(id) {
+        return api.get(`/departmenthead/technician/${id}/stats`);
+    },
+
+    // Chỉ lấy những technician rảnh trong khung giờ của request
+    getAvailableTechnicians(requestId, dateTime) {
+        // dateTime: ISO string, ví dụ "2025-11-26T14:00:00"
+        return api.get("/departmenthead/technicians/available", {
+            params: { requestId, dateTime },
+        });
+    },
+
+    // Lấy technician phù hợp nhất xử lý request (đã sắp xếp theo workload/SLA/…)
+    getBestTechnicianForRequest: (requestId) =>
+        api.get(`/departmenthead/technicians/best?requestId=${requestId}`),
+
 
 
     // ============================
@@ -53,29 +109,31 @@ const departmenthead = {
     getDashboardStats() {
         return api.get("/departmenthead/dashboard");
     },
-    getRequestDetail(id) {
-        return api.get(`/departmenthead/request/${id}`);
-    },
-    getRequestTimeline(id) {
-        return api.get(`/departmenthead/request/${id}/timeline`);
-    },
 
-    // ⭐ NEW — Workload / SLA / Activity / Performance
+    // Workload / SLA / Activity / Performance
     getWorkload() {
         return api.get("/departmenthead/workload");
     },
+
     getSLAOverview() {
         return api.get("/departmenthead/sla");
     },
+
     getActivityLog() {
         return api.get("/departmenthead/activity");
     },
+
     getPerformance() {
         return api.get("/departmenthead/performance");
     },
 
-    // ⭐ NEW — Export
+
+    // ============================
+    // 5. Export
+    // ============================
     exportReport(format, scope) {
+        // format: "xlsx" | "pdf" | ...
+        // scope: { fromDate, toDate, facilityId, ... }
         return api.post(
             "/departmenthead/export",
             { format, scope },
@@ -83,14 +141,18 @@ const departmenthead = {
         );
     },
 
-    // ⭐ NEW — Bulk assign
+
+    // ============================
+    // 6. Bulk assign
+    // ============================
     getBulkRequests() {
         return api.get("/departmenthead/bulk/requests");
     },
+
     bulkAssign(data) {
         // data: { requestIds: long[], assigneeId: long }
         return api.post("/departmenthead/bulk/assign", data);
-    },
+    }
 };
 
 export default departmenthead;

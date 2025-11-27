@@ -2,8 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Ohd.Data;
 using System.Security.Claims;
+using Ohd.DTOs.Roles.DepartmentHead;
+using Ohd.Entities;
 
 namespace Ohd.Controllers.DepartmentHead
+
+
 {
     [ApiController]
     [Route("api/departmenthead")]
@@ -44,7 +48,7 @@ namespace Ohd.Controllers.DepartmentHead
             const int STATUS_NEW = 1;
 
             var list = await _db.requests
-                .Where(r => r.FacilityId == facilityId && r.StatusId == STATUS_NEW)
+                .Where(r => r.StatusId == STATUS_NEW)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
@@ -61,7 +65,7 @@ namespace Ohd.Controllers.DepartmentHead
             const int STATUS_ASSIGNED = 2;
 
             var list = await _db.requests
-                .Where(r => r.FacilityId == facilityId && r.StatusId == STATUS_ASSIGNED)
+                .Where(r => r.StatusId == STATUS_ASSIGNED)
                 .OrderByDescending(r => r.UpdatedAt)
                 .ToListAsync();
 
@@ -149,7 +153,7 @@ namespace Ohd.Controllers.DepartmentHead
             const int ASSIGNED = 2;
             const int COMPLETED = 4;
 
-            var total = await _db.requests.CountAsync(r => r.FacilityId == facilityId);
+            var total = await _db.requests.CountAsync();
             var newReq = await _db.requests.CountAsync(r => r.FacilityId == facilityId && r.StatusId == NEW);
             var assigned = await _db.requests.CountAsync(r => r.FacilityId == facilityId && r.StatusId == ASSIGNED);
             var completed = await _db.requests.CountAsync(r => r.FacilityId == facilityId && r.StatusId == COMPLETED);
@@ -443,5 +447,227 @@ namespace Ohd.Controllers.DepartmentHead
         {
             return Ok("Export functionality placeholder");
         }
+        [HttpPut("request/reassign")]
+        public async Task<IActionResult> Reassign([FromBody] AssignDto dto)
+        {
+            var req = await _db.requests.FindAsync(dto.RequestId);
+            if (req == null) return NotFound("Request not found");
+
+            req.AssigneeId = dto.AssigneeId;
+            req.StatusId = 2;
+            req.UpdatedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "Reassigned successfully" });
+        }
+        [HttpPut("request/{id}/close")]
+        public async Task<IActionResult> CloseRequest(long id)
+        {
+            var req = await _db.requests.FindAsync(id);
+            if (req == null) return NotFound();
+
+            req.StatusId = 4; // Completed
+            req.CompletedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+            return Ok(new { message = "Request closed" });
+        }
+        [HttpPut("request/{id}/reopen")]
+        public async Task<IActionResult> ReopenRequest(long id)
+        {
+            var req = await _db.requests.FindAsync(id);
+            if (req == null) return NotFound();
+
+            req.StatusId = 2; // Assigned lại
+            req.UpdatedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+            return Ok(new { message = "Request reopened" });
+        }
+        [HttpGet("requests/search")]
+        public async Task<IActionResult> SearchRequests([FromQuery] RequestSearchDto dto)
+        {
+            var query = _db.requests.AsQueryable();
+
+            if (dto.StatusId != null)
+                query = query.Where(r => r.StatusId == dto.StatusId);
+
+            if (dto.Priority != null)
+                query = query.Where(r => r.PriorityId == dto.Priority);
+
+
+            if (dto.AssigneeId != null)
+                query = query.Where(r => r.AssigneeId == dto.AssigneeId);
+
+            if (dto.FromDate != null)
+                query = query.Where(r => r.CreatedAt >= dto.FromDate);
+
+            if (dto.ToDate != null)
+                query = query.Where(r => r.CreatedAt <= dto.ToDate);
+
+            return Ok(await query.OrderByDescending(r => r.CreatedAt).ToListAsync());
+        }
+        public class CommentDto
+        {
+            public string Message { get; set; }
+            public bool IsInternal { get; set; }
+        }
+
+        [HttpPost("request/{id}/comment")]
+        public async Task<IActionResult> AddComment(long id, [FromBody] CommentDto dto)
+        {
+            var req = await _db.requests.FindAsync(id);
+            if (req == null) return NotFound();
+
+            var log = new Timeline
+            {
+                request_id = id,
+                title = "Comment added",
+                note = dto.Message,
+                created_at = DateTime.UtcNow,
+                user_name = User.Identity?.Name ?? "System"
+                // ⚠️ Không dùng is_internal vì entity không có field này
+            };
+
+            _db.timeline.Add(log);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "Comment added" });
+        }
+
+        [HttpGet("technician/{id}/stats")]
+        public async Task<IActionResult> GetTechnicianStats(long id)
+        {
+            var completed = await _db.requests.CountAsync(r => r.AssigneeId == id && r.StatusId == 4);
+            var assigned  = await _db.requests.CountAsync(r => r.AssigneeId == id && r.StatusId == 2);
+            var overdue   = await _db.requests.CountAsync(r => r.AssigneeId == id && r.DueDate < DateTime.UtcNow);
+
+            return Ok(new { completed, assigned, overdue });
+        }
+// ================================
+// 1️⃣6️⃣ Technicians Available in Schedule
+// ================================
+        [HttpGet("technicians/available")]
+        public async Task<IActionResult> GetAvailableTechnicians(long requestId, DateTime dateTime)
+        {
+            int TECHNICIAN_ROLE_ID = 3;
+
+            // Lấy facility của Department Head
+            var facilityId = await GetFacilityId(GetUserId());
+
+            // Lấy danh sách technician thuộc facility
+            var technicians = await _db.user_roles
+                .Where(ur => ur.role_id == TECHNICIAN_ROLE_ID)
+                .Join(_db.Users,
+                    ur => ur.user_id,
+                    u => u.Id,
+                    (ur, u) => u)
+                .ToListAsync();
+
+            // Range ± 1 giờ để tránh trùng lịch
+            var startRange = dateTime.AddHours(-1);
+            var endRange = dateTime.AddHours(1);
+
+            // Danh sách kỹ thuật viên đang bận
+            var busy = await _db.requests
+                .Where(r =>
+                    r.FacilityId == facilityId &&
+                    r.AssigneeId != null &&
+                    r.StatusId == 2 && // Assigned / In-progress
+                    r.CreatedAt >= startRange &&
+                    r.CreatedAt <= endRange)
+                .Select(r => r.AssigneeId.Value)
+                .ToListAsync();
+
+            // Lọc technician rảnh
+            var available = technicians
+                .Where(t => !busy.Contains(t.Id))
+                .Select(t => new
+                {
+                    t.Id,
+                    t.Username,
+                    t.Email
+                })
+                .ToList();
+
+            return Ok(available);
+        }
+
+// ================================
+// 1️⃣7️⃣ Smart Suggestion — Best Technician for the Request
+// ================================
+       [HttpGet("technicians/best")]
+public async Task<IActionResult> GetBestTechnician(long requestId)
+{
+    var req = await _db.requests.FindAsync(requestId);
+    if (req == null) return NotFound("Request not found");
+
+    const int TECHNICIAN_ROLE_ID = 3;
+    var facilityId = await GetFacilityId(GetUserId());
+
+    // Lấy tất cả technicians trong cơ sở này
+    var technicians = await _db.user_roles
+        .Where(ur => ur.role_id == TECHNICIAN_ROLE_ID)
+        .Join(_db.Users,
+            ur => ur.user_id,
+            u => u.Id,
+            (ur, u) => u)
+        .ToListAsync();
+
+    var scoredList = new List<object>();
+
+    foreach (var t in technicians)
+    {
+        // Số ticket đang xử lý
+        var workload = await _db.requests.CountAsync(r =>
+            r.AssigneeId == t.Id &&
+            r.FacilityId == facilityId &&
+            r.StatusId == 2);
+
+        // Số ticket overdue
+        var overdue = await _db.requests.CountAsync(r =>
+            r.AssigneeId == t.Id &&
+            r.FacilityId == facilityId &&
+            r.StatusId != 4 &&
+            r.DueDate < DateTime.UtcNow);
+
+        // Trùng lịch trong ± 60 phút
+        var conflict = await _db.requests.AnyAsync(r =>
+            r.AssigneeId == t.Id &&
+            r.FacilityId == facilityId &&
+            r.StatusId == 2 &&
+            Math.Abs((r.CreatedAt - req.CreatedAt).TotalMinutes) < 60);
+
+        // Tính điểm
+        double score = 0;
+        if (!conflict) score += 50;
+        score += Math.Max(0, 30 - workload * 10);
+        score += Math.Max(0, 20 - overdue * 10);
+
+        scoredList.Add(new
+        {
+            TechnicianId = t.Id,
+            Name = t.Username ?? t.Email,
+            Workload = workload,
+            Overdue = overdue,
+            Conflict = conflict,
+            Score = score
+        });
+    }
+
+    // Chọn thằng điểm cao nhất
+    var best = scoredList
+        .OrderByDescending(x => x.GetType().GetProperty("Score")?.GetValue(x))
+        .FirstOrDefault();
+
+    // Nếu null → return 404
+    if (best == null)
+        return NotFound("No technician available");
+
+    return Ok(best);     // <<== QUAN TRỌNG
+}
+
+
     }
 }

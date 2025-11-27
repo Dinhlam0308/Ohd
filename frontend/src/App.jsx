@@ -25,8 +25,21 @@ import SLAOverview from "./components/departmenthead/SLAOverview.jsx";
 import ActivityLog from "./components/departmenthead/ActivityLog.jsx";
 import PerformanceDashboard from "./components/departmenthead/PerformanceDashboard.jsx";
 import BulkAssign from "./components/departmenthead/BulkAssign.jsx";
+import BestTechnicianPage  from "./components/departmenthead/BestTechnicianCard.jsx";
+import AvailableTechniciansPage from "./components/departmenthead/AvailableTechniciansModal.jsx";
 
-// Layouts
+
+import TechnicianLayoutWrapper from "./routes/TechnicianLayoutWrapper";
+import TechDashboard from "./main-components/technician/TechDashboard";
+import TechRequestList from "./components/technician/TechRequestList";
+import TechRequestDetail from "./components/technician/TechRequestDetail";
+// END-USER
+import EndUserLayoutWrapper from "./routes/EndUserLayoutWrapper.jsx";
+import CreateRequest from "./main-components/user/CreateRequest.jsx";
+import MyRequests from "./main-components/user/MyRequests.jsx";
+import EndUserRequestDetail from "./main-components/user/RequestDetail.jsx";
+
+
 import AdminLayoutWrapper from "./routes/AdminLayoutWrapper.jsx";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import RequestDetailWrapper from "./routes/RequestDetailWrapper.jsx";
@@ -94,11 +107,40 @@ export default function App() {
                 <Route path="bulk-assign" element={<BulkAssign />} />
 
                 {/* Request Detail */}
+                <Route path="technicians/best" element={<BestTechnicianPage />} />
+                <Route path="technicians/available" element={<AvailableTechniciansPage />} />
                 <Route path="request/:id" element={<RequestDetail />} />
             </Route>
 
 
+            {/* TECHNICIAN */}
+            <Route
+                path="/tech"
+                element={
+                    <ProtectedRoute allowedRoles={["Technician"]}>
+                        <TechnicianLayoutWrapper />
+                    </ProtectedRoute>
+                }
+            >
+                <Route index element={<Navigate to="/tech/dashboard" replace />} />
+                <Route path="dashboard" element={<TechDashboard />} />
+                <Route path="requests" element={<TechRequestList />} />
+                <Route path="request/:id" element={<TechRequestDetail />} />
+            </Route>
+            <Route
+                path="/eu"
+                element={
+                    <ProtectedRoute>
+                        <EndUserLayoutWrapper />
+                    </ProtectedRoute>
+                }
+            >
+                <Route index element={<Navigate to="" replace />} />
 
+                <Route path="requests" element={<MyRequests />} />
+                <Route path="requests/create" element={<CreateRequest />} />
+                <Route path="request/:id" element={<EndUserRequestDetail />} />
+            </Route>
 
             {/* DEFAULT CATCH-ALL */}
             <Route path="*" element={<Navigate to="/login" replace />} />

@@ -16,28 +16,27 @@ namespace Ohd.Repositories.Implementations
 
         public async Task<List<RequestStatus>> GetRequestStatusesAsync()
         {
-            return await _context.RequestStatus
-                .OrderBy(x => x.Id)   // cột id trong table request_statuses
+            return await _context.request_statuses
+                .OrderBy(x => x.Name)
                 .ToListAsync();
         }
 
         public async Task<List<Severity>> GetSeveritiesAsync()
         {
             return await _context.severities
-                .OrderBy(x => x.sort_order)   // cột sort_order trong severities
+                .OrderBy(x => x.name)   // FIX: Không còn gọi sort_order
                 .ToListAsync();
         }
 
         public async Task<List<RequestPriority>> GetRequestPrioritiesAsync()
         {
             return await _context.request_priorities
-                .OrderBy(x => x.sort_order)   // cột sort_order trong request_priorities
+                .OrderBy(x => x.name)   // FIX
                 .ToListAsync();
         }
 
         public async Task<List<Facility>> GetFacilitiesAsync()
         {
-            // Facility đã được map property Name -> column name
             return await _context.Facilities
                 .OrderBy(x => x.Name)
                 .ToListAsync();

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import adminApi from "../../api/admin";
 
+
 export default function AdminConfigPanel() {
     const [activeTab, setActiveTab] = useState("statuses");
     const [loading, setLoading] = useState(false);
@@ -14,6 +15,12 @@ export default function AdminConfigPanel() {
     });
 
     const [severities, setSeverities] = useState([]);
+    const [sevForm, setSevForm] = useState({
+        id: null,
+        code: "",
+        name: "",
+        sortOrder: 0,
+    });
 
     const [roles, setRoles] = useState([]);
     const [roleForm, setRoleForm] = useState({
@@ -133,6 +140,58 @@ export default function AdminConfigPanel() {
         }
     };
 
+    const handleSevEdit = (s) => {
+        setSevForm({
+            id: s.id,
+            code: s.code,
+            name: s.name,
+            sortOrder: s.sort_order,
+        });
+    };
+
+    const handleSubmitSeverity = async (e) => {
+        e.preventDefault();
+        try {
+            setLoading(true);
+            const sort = Number(sevForm.sortOrder);
+
+            if (sevForm.id) {
+                await adminApi.updateSeverity(sevForm.id, {
+                    name: sevForm.name,
+                    sortOrder: sort,
+                });
+            } else {
+                await adminApi.createSeverity({
+                    code: sevForm.code,
+                    name: sevForm.name,
+                    sortOrder: sort,
+                });
+            }
+
+            await loadSeverities();
+            showMessage("Saved.");
+            setSevForm({ id: null, code: "", name: "", sortOrder: 0 });
+        } catch {
+            showMessage("Cannot save severity.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSevDelete = async (s) => {
+        if (!window.confirm(`Delete severity "${s.name}"?`)) return;
+        try {
+            setLoading(true);
+            await adminApi.deleteSeverity(s.id);
+            await loadSeverities();
+            showMessage("Severity deleted.");
+        } catch {
+            showMessage("Cannot delete severity.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleEditRole = (r) =>
         setRoleForm({ id: r.id, name: r.name, description: r.description });
 
@@ -177,300 +236,358 @@ export default function AdminConfigPanel() {
     };
 
     return (
-        <div className="space-y-4">
+     
+            <div className="space-y-4">
 
-            {/* HEADER */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="glass-header text-xl">System Configuration</h2>
-                    <p className="text-xs text-slate-500">
-                        Manage statuses, severities, roles & reports.
-                    </p>
-                </div>
-                {loading && (
-                    <span className="text-xs text-slate-500 animate-pulse">
-                        Loading...
-                    </span>
-                )}
-            </div>
-
-            {/* TABS */}
-            <div className="flex gap-2 text-xs">
-                {[
-                    { id: "statuses", label: "Statuses" },
-                    { id: "severities", label: "Severities" },
-                    { id: "roles", label: "Roles" },
-                    { id: "reports", label: "Reports" },
-                ].map((t) => (
-                    <button
-                        key={t.id}
-                        onClick={() => setActiveTab(t.id)}
-                        className={`glass-tab ${
-                            activeTab === t.id
-                                ? "glass-tab-active"
-                                : "glass-tab-inactive"
-                        }`}
-                    >
-                        {t.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* TOAST */}
-            {message && <div className="glass-toast">{message}</div>}
-
-            {/* MAIN PANEL */}
-            <div className="glass-panel p-6 space-y-6">
-
-                {/* ================== STATUS ================== */}
-                {activeTab === "statuses" && (
+                {/* HEADER */}
+                <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="text-sm text-slate-800 mb-2">
-                            Request statuses
-                        </h3>
-
-                        <div className="mb-3 flex gap-3">
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="glass-input"
-                                value={statusFilter.search}
-                                onChange={(e) =>
-                                    setStatusFilter({
-                                        ...statusFilter,
-                                        search: e.target.value,
-                                    })
-                                }
-                                onBlur={loadStatuses}
-                            />
-
-                            <select
-                                className="glass-input"
-                                value={statusFilter.isFinal}
-                                onChange={(e) =>
-                                    setStatusFilter({
-                                        ...statusFilter,
-                                        isFinal: e.target.value,
-                                    })
-                                }
-                            >
-                                <option value="">Final: All</option>
-                                <option value="true">Final</option>
-                                <option value="false">Non-final</option>
-                            </select>
-
-                            <select
-                                className="glass-input"
-                                value={statusFilter.isOverdue}
-                                onChange={(e) =>
-                                    setStatusFilter({
-                                        ...statusFilter,
-                                        isOverdue: e.target.value,
-                                    })
-                                }
-                            >
-                                <option value="">Overdue: All</option>
-                                <option value="true">Overdue</option>
-                                <option value="false">Normal</option>
-                            </select>
-                        </div>
-
-                        <table className="glass-table">
-                            <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Name</th>
-                                <th className="text-center">Final</th>
-                                <th className="text-center">Overdue</th>
-                                <th className="text-right">Actions</th>
-                            </tr>
-                            </thead>
-
-                            <tbody>
-                            {statuses.map((st) => (
-                                <tr key={st.id}>
-                                    <td>{st.code}</td>
-                                    <td>{st.name}</td>
-                                    <td className="text-center">
-                                        {st.isFinal ? "Yes" : "No"}
-                                    </td>
-                                    <td className="text-center">
-                                        {st.isOverdue ? "Yes" : "No"}
-                                    </td>
-                                    <td className="text-right space-x-2">
-                                        <button
-                                            className="glass-btn glass-btn-danger"
-                                            onClick={() => handleDeleteStatus(st)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                        <h2 className="glass-header text-xl">System Configuration</h2>
+                        <p className="text-xs text-slate-500">
+                            Manage statuses, severities, roles & reports.
+                        </p>
                     </div>
-                )}
+                    {loading && (
+                        <span className="text-xs text-slate-500 animate-pulse">
+                            Loading...
+                        </span>
+                    )}
+                </div>
 
-                {/* ================== SEVERITIES ================== */}
-                {activeTab === "severities" && (
-                    <div className="grid grid-cols-1 gap-6">
+                {/* TABS */}
+                <div className="flex gap-2 text-xs">
+                    {[
+                        { id: "statuses", label: "Statuses" },
+                        { id: "severities", label: "Severities" },
+                        { id: "roles", label: "Roles" },
+                        { id: "reports", label: "Reports" },
+                    ].map((t) => (
+                        <button
+                            key={t.id}
+                            onClick={() => setActiveTab(t.id)}
+                            className={`glass-tab ${
+                                activeTab === t.id
+                                    ? "glass-tab-active"
+                                    : "glass-tab-inactive"
+                            }`}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
 
-                        <table className="glass-table">
-                            <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Name</th>
-                                <th className="text-center">Order</th>
-                                <th className="text-right">Actions</th>
-                            </tr>
-                            </thead>
+                {/* TOAST */}
+                {message && <div className="glass-toast">{message}</div>}
 
-                            <tbody>
-                            {severities.map((s) => (
-                                <tr key={s.id}>
-                                    <td>{s.code}</td>
-                                    <td>{s.name}</td>
-                                    <td className="text-center">{s.sort_order}</td>
-                                    <td className="text-right space-x-2">
-                                        <button
-                                            className="glass-btn glass-btn-danger"
-                                            onClick={() => handleSevDelete(s)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                {/* MAIN PANEL */}
+                <div className="glass-panel p-6 space-y-6">
 
-                    </div>
-                )}
-
-                {/* ================== ROLES ================== */}
-                {activeTab === "roles" && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                        <table className="glass-table">
-                            <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th className="text-right">Actions</th>
-                            </tr>
-                            </thead>
-
-                            <tbody>
-                            {roles.map((r) => (
-                                <tr key={r.id}>
-                                    <td>{r.id}</td>
-                                    <td>{r.name}</td>
-                                    <td>{r.description || "—"}</td>
-                                    <td className="text-right space-x-2">
-                                        <button
-                                            className="glass-btn glass-btn-light"
-                                            onClick={() => handleEditRole(r)}
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            className="glass-btn glass-btn-danger"
-                                            onClick={() => handleDeleteRole(r)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-
-                        <div className="glass-panel p-4 space-y-3">
-                            <h3 className="text-sm glass-header mb-3">
-                                {roleForm.id ? "Update role" : "Create role"}
+                    {/* ================== STATUS ================== */}
+                    {activeTab === "statuses" && (
+                        <div>
+                            <h3 className="text-sm text-slate-800 mb-2">
+                                Request statuses
                             </h3>
 
-                            <form className="space-y-3" onSubmit={handleSubmitRole}>
-                                <div>
-                                    <label className="text-slate-700 text-xs">Role name</label>
-                                    <input
-                                        type="text"
-                                        className="glass-input"
-                                        value={roleForm.name}
-                                        onChange={(e) =>
-                                            setRoleForm({ ...roleForm, name: e.target.value })
-                                        }
-                                        required
-                                    />
-                                </div>
+                            <div className="mb-3 flex gap-3">
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    className="glass-input"
+                                    value={statusFilter.search}
+                                    onChange={(e) =>
+                                        setStatusFilter({
+                                            ...statusFilter,
+                                            search: e.target.value,
+                                        })
+                                    }
+                                    onBlur={loadStatuses}
+                                />
 
-                                <div>
-                                    <label className="text-slate-700 text-xs">Description</label>
-                                    <textarea
-                                        rows={3}
-                                        className="glass-input"
-                                        value={roleForm.description}
-                                        onChange={(e) =>
-                                            setRoleForm({
-                                                ...roleForm,
-                                                description: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
+                                <select
+                                    className="glass-input"
+                                    value={statusFilter.isFinal}
+                                    onChange={(e) =>
+                                        setStatusFilter({
+                                            ...statusFilter,
+                                            isFinal: e.target.value,
+                                        })
+                                    }
+                                >
+                                    <option value="">Final: All</option>
+                                    <option value="true">Final</option>
+                                    <option value="false">Non-final</option>
+                                </select>
 
-                                <button className="glass-btn glass-btn-primary w-full">
-                                    {roleForm.id ? "Update" : "Create"}
-                                </button>
-                            </form>
+                                <select
+                                    className="glass-input"
+                                    value={statusFilter.isOverdue}
+                                    onChange={(e) =>
+                                        setStatusFilter({
+                                            ...statusFilter,
+                                            isOverdue: e.target.value,
+                                        })
+                                    }
+                                >
+                                    <option value="">Overdue: All</option>
+                                    <option value="true">Overdue</option>
+                                    <option value="false">Normal</option>
+                                </select>
+                            </div>
+
+                            <table className="glass-table">
+                                <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th className="text-center">Final</th>
+                                    <th className="text-center">Overdue</th>
+                                    <th className="text-right">Actions</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                {statuses.map((st) => (
+                                    <tr key={st.id}>
+                                        <td>{st.code}</td>
+                                        <td>{st.name}</td>
+                                        <td className="text-center">{st.isFinal ? "Yes" : "No"}</td>
+                                        <td className="text-center">{st.isOverdue ? "Yes" : "No"}</td>
+                                        <td className="text-right space-x-2">
+                                            <button
+                                                className="glass-btn glass-btn-danger"
+                                                onClick={() => handleDeleteStatus(st)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
                         </div>
+                    )}
 
-                    </div>
-                )}
+                    {/* ================== SEVERITIES ================== */}
+                    {activeTab === "severities" && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                {/* ================== REPORTS ================== */}
-                {activeTab === "reports" && (
-                    <div>
-                        <h3 className="text-sm glass-header mb-3">Reports</h3>
+                            <table className="glass-table">
+                                <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th className="text-center">Order</th>
+                                    <th className="text-right">Actions</th>
+                                </tr>
+                                </thead>
 
-                        <div className="flex gap-3 mb-3">
-                            <select
-                                className="glass-input w-auto"
-                                value={reportRange}
-                                onChange={(e) => setReportRange(e.target.value)}
-                            >
-                                <option value="7">Last 7 days</option>
-                                <option value="30">Last 30 days</option>
-                                <option value="90">Last 90 days</option>
-                            </select>
+                                <tbody>
+                                {severities.map((s) => (
+                                    <tr key={s.id}>
+                                        <td>{s.code}</td>
+                                        <td>{s.name}</td>
+                                        <td className="text-center">{s.sort_order}</td>
+                                        <td className="text-right space-x-2">
+                                            <button
+                                                className="glass-btn glass-btn-light"
+                                                onClick={() => handleSevEdit(s)}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                className="glass-btn glass-btn-danger"
+                                                onClick={() => handleSevDelete(s)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
 
-                            <span className="text-slate-700 text-xs">
-                                Total requests:{" "}
-                                <span className="text-slate-900 font-semibold">
-                                    {reportStats.total}
-                                </span>
-                            </span>
+                            <div className="glass-panel p-4 space-y-3">
+                                <h3 className="text-sm glass-header mb-2">
+                                    {sevForm.id ? "Update severity" : "Create severity"}
+                                </h3>
+
+                                <form className="space-y-3" onSubmit={handleSubmitSeverity}>
+                                    <div>
+                                        <label className="text-slate-700 text-xs">Code</label>
+                                        <input
+                                            type="text"
+                                            className="glass-input"
+                                            value={sevForm.code}
+                                            disabled={!!sevForm.id}
+                                            onChange={(e) =>
+                                                setSevForm({ ...sevForm, code: e.target.value })
+                                            }
+                                            required={!sevForm.id}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-slate-700 text-xs">Name</label>
+                                        <input
+                                            type="text"
+                                            className="glass-input"
+                                            value={sevForm.name}
+                                            onChange={(e) =>
+                                                setSevForm({ ...sevForm, name: e.target.value })
+                                            }
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-slate-700 text-xs">Order</label>
+                                        <input
+                                            type="number"
+                                            className="glass-input"
+                                            value={sevForm.sortOrder}
+                                            onChange={(e) =>
+                                                setSevForm({
+                                                    ...sevForm,
+                                                    sortOrder: e.target.value,
+                                                })
+                                            }
+                                            min={0}
+                                        />
+                                    </div>
+
+                                    <button className="glass-btn glass-btn-primary w-full">
+                                        {sevForm.id ? "Update" : "Create"}
+                                    </button>
+                                </form>
+                            </div>
                         </div>
+                    )}
 
-                        {reportStats.byStatus.map((item) => (
-                            <div
-                                key={item.statusId}
-                                className="glass-panel p-4 flex justify-between mb-2"
-                            >
-                                <span className="text-slate-700">
-                                    Status {item.statusId}
-                                </span>
-                                <span className="text-slate-900 font-semibold">
-                                    {item.count}
+                    {/* ================== ROLES ================== */}
+                    {activeTab === "roles" && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                            <table className="glass-table">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th className="text-right">Actions</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                {roles.map((r) => (
+                                    <tr key={r.id}>
+                                        <td>{r.id}</td>
+                                        <td>{r.name}</td>
+                                        <td>{r.description || "—"}</td>
+                                        <td className="text-right space-x-2">
+                                            <button
+                                                className="glass-btn glass-btn-light"
+                                                onClick={() => handleEditRole(r)}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                className="glass-btn glass-btn-danger"
+                                                onClick={() => handleDeleteRole(r)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+
+                            <div className="glass-panel p-4 space-y-3">
+                                <h3 className="text-sm glass-header mb-3">
+                                    {roleForm.id ? "Update role" : "Create role"}
+                                </h3>
+
+                                <form className="space-y-3" onSubmit={handleSubmitRole}>
+                                    <div>
+                                        <label className="text-slate-700 text-xs">Role name</label>
+                                        <input
+                                            type="text"
+                                            className="glass-input"
+                                            value={roleForm.name}
+                                            onChange={(e) =>
+                                                setRoleForm({ ...roleForm, name: e.target.value })
+                                            }
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-slate-700 text-xs">Description</label>
+                                        <textarea
+                                            rows={3}
+                                            className="glass-input"
+                                            value={roleForm.description}
+                                            onChange={(e) =>
+                                                setRoleForm({
+                                                    ...roleForm,
+                                                    description: e.target.value,
+                                                })
+                                            }
+                                        />
+                                    </div>
+
+                                    <button className="glass-btn glass-btn-primary w-full">
+                                        {roleForm.id ? "Update" : "Create"}
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+                    )}
+
+                    {/* ================== REPORTS ================== */}
+                    {activeTab === "reports" && (
+                        <div>
+                            <h3 className="text-sm glass-header mb-3">Reports</h3>
+
+                            <div className="flex gap-3 mb-3">
+                                <select
+                                    className="glass-input w-auto"
+                                    value={reportRange}
+                                    onChange={(e) => setReportRange(e.target.value)}
+                                >
+                                    <option value="7">Last 7 days</option>
+                                    <option value="30">Last 30 days</option>
+                                    <option value="90">Last 90 days</option>
+                                </select>
+
+                                <span className="text-slate-700 text-xs">
+                                    Total requests:{" "}
+                                    <span className="text-slate-900 font-semibold">
+                                        {reportStats.total}
+                                    </span>
                                 </span>
                             </div>
-                        ))}
-                    </div>
-                )}
 
+                            {reportStats.byStatus.map((item) => (
+                                <div
+                                    key={item.statusId}
+                                    className="glass-panel p-4 flex justify-between mb-2"
+                                >
+                                    <span className="text-slate-700">
+                                        Status {item.statusId}
+                                    </span>
+                                    <span className="text-slate-900 font-semibold">
+                                        {item.count}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                </div>
             </div>
-        </div>
+
     );
 }

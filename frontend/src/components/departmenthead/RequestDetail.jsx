@@ -1,41 +1,56 @@
 // src/components/departmenthead/RequestDetail.jsx
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import departmentheadApi from "../../api/departmenthead";
+import departmenthead from "../../api/departmenthead";
+
+// POPUPS
 import AssignPopup from "./AssignPopup";
 import ReassignPopup from "./ReassignPopup";
 import CloseRequestPopup from "./CloseRequestPopup";
+
+// COMPONENTS
+import BestTechnicianCard from "./BestTechnicianCard";
+import AvailableTechniciansModal from "./AvailableTechniciansModal";
+import AddCommentBox from "./AddCommentBox";
+import TimelineView from "./TimelineView";
+import TechnicianStats from "./TechnicianStats";
+
 import "../../assets/css/departmenthead/RequestDetail.css";
 
 export default function RequestDetail() {
-    const { id } = useParams();
+    const { id } = useParams(); // <-- requestId từ URL
     const navigate = useNavigate();
 
     const [request, setRequest] = useState(null);
     const [timeline, setTimeline] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // POPUPS
     const [showAssign, setShowAssign] = useState(false);
     const [showReassign, setShowReassign] = useState(false);
     const [showClose, setShowClose] = useState(false);
+    const [showAvailableModal, setShowAvailableModal] = useState(false);
 
+    // Load data
     const load = async () => {
         try {
             const [detailRes, timelineRes] = await Promise.all([
-                departmentheadApi.getRequestDetail(id),
-                departmentheadApi.getRequestTimeline(id),
+                departmenthead.getRequestDetail(id),
+                departmenthead.getRequestTimeline(id),
             ]);
 
             setRequest(detailRes.data);
             setTimeline(timelineRes.data || []);
         } catch (err) {
-            console.error(err);
+            console.error("Failed to load request:", err);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
+        if (!id) return;
         load();
     }, [id]);
 
@@ -46,10 +61,7 @@ export default function RequestDetail() {
         <>
             {/* HEADER */}
             <div className="dh-page-header">
-                <button
-                    className="dh-back-btn"
-                    onClick={() => navigate(-1)}
-                >
+                <button className="dh-back-btn" onClick={() => navigate(-1)}>
                     ← Back
                 </button>
 
@@ -58,62 +70,75 @@ export default function RequestDetail() {
                         #{request.id} — {request.title}
                     </div>
                     <div className="dh-page-sub">
-                        Status: <strong>{request.statusName || request.statusId}</strong> ·
-                        Severity: <strong>{request.severityName || request.severityId}</strong>
+                        Status: <strong>{request.statusName}</strong> ·{" "}
+                        Severity: <strong>{request.severityName}</strong>
                     </div>
                 </div>
 
                 <div className="dh-header-actions">
-                    <button
-                        className="dh-btn-secondary"
-                        onClick={() => setShowAssign(true)}
-                    >
+                    <button className="dh-btn-secondary" onClick={() => setShowAssign(true)}>
                         Assign
                     </button>
-                    <button
-                        className="dh-btn-secondary"
-                        onClick={() => setShowReassign(true)}
-                    >
+                    <button className="dh-btn-secondary" onClick={() => setShowReassign(true)}>
                         Reassign
                     </button>
-                    <button
-                        className="dh-btn-danger"
-                        onClick={() => setShowClose(true)}
-                    >
+                    <button className="dh-btn-secondary" onClick={() => setShowAvailableModal(true)}>
+                        Check Availability
+                    </button>
+                    <button className="dh-btn-danger" onClick={() => setShowClose(true)}>
                         Close Request
                     </button>
                 </div>
             </div>
 
-            {/* TOP GRID */}
+            {/* 🔥 BEST TECHNICIAN SUGGESTION */}
+            <BestTechnicianCard
+                requestId={id}
+                onAssign={async (techId) => {
+                    await departmenthead.assignRequest({
+                        requestId: id,
+                        assigneeId: techId
+                    });
+                    load();
+                }}
+            />
+
+            {/* GRID INFO */}
             <div className="dh-grid">
                 <div className="dh-card">
                     <div className="dh-card-label">Requester</div>
                     <div className="dh-card-value-sm">
-                        {request.requesterName || request.requesterEmail || "N/A"}
+                        {request.requesterName || "N/A"}
                     </div>
                     <div className="dh-card-subline">
-                        Created at: {new Date(request.createdAt).toLocaleString()}
+                        Created: {new Date(request.createdAt).toLocaleString()}
                     </div>
                 </div>
+
                 <div className="dh-card">
-                    <div className="dh-card-label">Assigned Technician</div>
+                    <div className="dh-card-label">Technician</div>
                     <div className="dh-card-value-sm">
-                        {request.assigneeName || request.assigneeId || "Unassigned"}
+                        {request.assigneeName || "Unassigned"}
                     </div>
                     <div className="dh-card-subline">
-                        Last updated: {new Date(request.updatedAt).toLocaleString()}
+                        Updated: {new Date(request.updatedAt).toLocaleString()}
                     </div>
+
+                    {request.assigneeId && (
+                        <TechnicianStats technicianId={request.assigneeId} />
+                    )}
                 </div>
+
                 <div className="dh-card">
                     <div className="dh-card-label">Facility</div>
                     <div className="dh-card-value-sm">
-                        {request.facilityName || request.facilityId}
+                        {request.facilityName}
                     </div>
                     <div className="dh-card-subline">
-                        Priority: {request.priorityName || request.priorityId || "N/A"}
+                        Priority: {request.priorityName}
                     </div>
                 </div>
+
                 <div className="dh-card">
                     <div className="dh-card-label">Due date</div>
                     <div className="dh-card-value-sm">
@@ -122,7 +147,7 @@ export default function RequestDetail() {
                             : "No due date"}
                     </div>
                     <div className="dh-card-subline">
-                        Completed at:{" "}
+                        Completed:{" "}
                         {request.completedAt
                             ? new Date(request.completedAt).toLocaleString()
                             : "Not completed"}
@@ -130,54 +155,29 @@ export default function RequestDetail() {
                 </div>
             </div>
 
-            {/* BODY */}
+            {/* BODY LAYOUT */}
             <div className="dh-detail-layout">
-                {/* LEFT — DESCRIPTION + ATTACHMENTS */}
+                {/* LEFT MAIN: DESCRIPTION */}
                 <div className="dh-card dh-detail-main">
                     <h3 className="dh-detail-title">Description</h3>
                     <p className="dh-detail-desc">
                         {request.description || "No description provided."}
                     </p>
 
-                    {/* Placeholder attachments block */}
-                    <div className="dh-detail-section">
-                        <div className="dh-detail-section-title">Attachments</div>
-                        <div className="dh-detail-empty">No attachments UI yet.</div>
-                    </div>
+                    {/* Comments */}
+                    <AddCommentBox requestId={id} onAdded={load} />
                 </div>
 
-                {/* RIGHT — TIMELINE */}
+                {/* RIGHT COLUMN: TIMELINE */}
                 <div className="dh-card dh-detail-side">
-                    <h3 className="dh-detail-title">Activity Timeline</h3>
-                    <div className="dh-timeline">
-                        {timeline.length === 0 && (
-                            <div className="dh-detail-empty">No activity yet.</div>
-                        )}
-                        {timeline.map((item, idx) => (
-                            <div key={idx} className="dh-timeline-item">
-                                <div className="dot" />
-                                <div className="content">
-                                    <div className="title">{item.title}</div>
-                                    <div className="meta">
-                                        {item.userName && <span>{item.userName}</span>}
-                                        <span>
-                                            {new Date(item.createdAt).toLocaleString()}
-                                        </span>
-                                    </div>
-                                    {item.note && (
-                                        <div className="note">{item.note}</div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <TimelineView requestId={id} />
                 </div>
             </div>
 
             {/* POPUPS */}
             {showAssign && (
                 <AssignPopup
-                    requestId={request.id}
+                    requestId={id}
                     onClose={() => setShowAssign(false)}
                     onAssigned={load}
                 />
@@ -185,7 +185,7 @@ export default function RequestDetail() {
 
             {showReassign && (
                 <ReassignPopup
-                    requestId={request.id}
+                    requestId={id}
                     onClose={() => setShowReassign(false)}
                     onReassigned={load}
                 />
@@ -193,11 +193,24 @@ export default function RequestDetail() {
 
             {showClose && (
                 <CloseRequestPopup
-                    requestId={request.id}
+                    requestId={id}
                     onClose={() => setShowClose(false)}
-                    onClosed={() => {
+                    onClosed={load}
+                />
+            )}
+
+            {showAvailableModal && (
+                <AvailableTechniciansModal
+                    requestId={id}
+                    onSelect={async (techId) => {
+                        await departmenthead.assignRequest({
+                            requestId: id,
+                            assigneeId: techId
+                        });
+                        setShowAvailableModal(false);
                         load();
                     }}
+                    onClose={() => setShowAvailableModal(false)}
                 />
             )}
         </>
